@@ -5,7 +5,11 @@ const jwt = require('jsonwebtoken');
 const router = express.Router();
 
 const auth = (req, res, next) => {
-  const token = req.header('Authorization');
+  const bearer = req.header('Authorization');
+  if (!bearer || !bearer.startsWith("Bearer ")) {
+    return res.status(401).json({ msg: "Nevažeći token." });
+  }
+const token = bearer.split(" ")[1];
   if (!token) return res.status(401).json({ msg: 'Nema tokena.' });
 
   try {
