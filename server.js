@@ -4,6 +4,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const authRoutes = require('./routes/auth');
 const postRoutes = require('./routes/posts');
+const registerRoute = require('./routes/register');
 
 const app = express();
 dotenv.config();
@@ -22,3 +23,4 @@ app.use('/api/posts', postRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server aktivan na portu ${PORT}`));
+
