@@ -54,4 +54,31 @@ router.post('/register', async (req, res) => {
   }
 });
 
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ msg: "Korisnik nije pronađen." });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(400).json({ msg: "Pogrešna lozinka." });
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: '1d'
+    });
+
+    res.json({
+      token,
+      user: {
+        name: user.name,
+        avatarUrl: user.avatarUrl
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Greška na serveru." });
+  }
+});
+
 module.exports = router;
