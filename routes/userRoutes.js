@@ -22,4 +22,29 @@ router.get('/:username/panel', async (req, res) => {
   }
 });
 
+// ruta za pretragu korisnika
+router.get('/search', async (req, res) => {
+  try {
+    const query = req.query.query;
+
+    if (!query) {
+      return res.status(400).json({ message: 'Nedostaje parametar pretrage.' });
+    }
+
+    const regex = new RegExp(query, 'i'); // Case-insensitive
+
+    const users = await User.find({
+      $or: [
+        { name: regex },
+        { surname: regex },
+        { city: regex }
+      ]
+    }).select('name surname city _id');
+
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: 'Greška na serveru.' });
+  }
+});
+
 module.exports = router;
