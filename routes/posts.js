@@ -29,7 +29,7 @@ router.post('/', auth, async (req, res) => {
 });
 
 router.get('/', async (req, res) => {
-  const posts = await Post.find().populate('user', 'ime prezime avatar').sort({ date: -1 });
+  const posts = await Post.find().populate('user', 'name surname avatarUrl').sort({ date: -1 });
   res.json(posts);
 });
 
