@@ -4,7 +4,6 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const authRoutes = require('./routes/auth');
 const postRoutes = require('./routes/posts');
-const registerRoute = require('./routes/register');
 const userRoutes = require('./routes/userRoutes');
 
 const app = express();
