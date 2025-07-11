@@ -88,9 +88,17 @@ router.post('/login', async (req, res) => {
 router.get('/user/:id/panel', async (req, res) => {
   try {
     const panel = await Panel.findOne({ userId: req.params.id });
-    if (!panel) return res.status(404).json({ msg: "Panel nije pronađen." });
+    const user = await User.findById(req.params.id);
 
-    res.json(panel);
+    if (!panel || !user) return res.status(404).json({ msg: "Panel ili korisnik nisu pronađeni." });
+
+    res.json({
+      name: user.name,
+      surname: user.surname,
+      city: user.city,
+      avatar: user.avatarUrl,
+      categories: panel.categories
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: "Greška na serveru." });
@@ -98,3 +106,4 @@ router.get('/user/:id/panel', async (req, res) => {
 });
 
 module.exports = router;
+
