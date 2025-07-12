@@ -69,7 +69,7 @@ const auth = (req, res, next) => {
 // Ruta za prikaz svojih podataka
 router.get('/me', auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user).select('name surname city email');
+    const user = await User.findById(req.user).select('name surname city email avatarUrl');
     if (!user) return res.status(404).json({ msg: 'Korisnik nije pronađen' });
     res.json(user);
   } catch (err) {
@@ -87,6 +87,7 @@ router.put('/update', auth, async (req, res) => {
     user.surname = req.body.surname || user.surname;
     user.city = req.body.city || user.city;
     user.email = req.body.email || user.email;
+    user.avatarUrl = req.body.avatarUrl || user.avatarUrl;
 
     await user.save();
     res.json({ msg: 'Podaci su uspešno ažurirani.' });
