@@ -22,8 +22,16 @@ const token = bearer.split(" ")[1];
 };
 
 router.post('/', auth, async (req, res) => {
-  const { text } = req.body;
-  const newPost = new Post({ text, user: req.user });
+  const { text, panelOwnerId, mainCategory, subCategory } = req.body;
+
+  const newPost = new Post({
+    text,
+    user: req.user,
+    panelOwnerId,
+    mainCategory,
+    subCategory
+  });
+
   await newPost.save();
   res.json(newPost);
 });
