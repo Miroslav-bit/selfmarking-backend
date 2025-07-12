@@ -39,7 +39,7 @@ router.get('/search', async (req, res) => {
         { surname: regex },
         { city: regex }
       ]
-    }).select('name surname city _id');
+    }).select('name surname city avatarUrl _id');
 
     res.json(users);
   } catch (err) {
@@ -48,3 +48,4 @@ router.get('/search', async (req, res) => {
 });
 
 module.exports = router;
+
