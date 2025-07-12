@@ -41,4 +41,23 @@ router.get('/', async (req, res) => {
   res.json(posts);
 });
 
+router.get('/filter', async (req, res) => {
+  const { ownerId, mainCategory, subCategory } = req.query;
+
+  try {
+    const posts = await Post.find({
+      panelOwnerId: ownerId,
+      mainCategory,
+      subCategory
+    })
+    .populate('user', 'name surname avatarUrl')
+    .sort({ date: -1 });
+
+    res.json(posts);
+  } catch (err) {
+    console.error("Greška u /filter:", err);
+    res.status(500).json({ msg: "Greška na serveru." });
+  }
+});
+
 module.exports = router;
