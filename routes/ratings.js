@@ -33,4 +33,14 @@ router.get('/list', async (req, res) => {
   }
 });
 
-module.exports = router;
+// GET ocenjivači za konkretnu temu
+router.get('/raters', async (req, res) => {
+  try {
+    const { cardName, cardSub } = req.query;
+    const ratings = await Rating.find({ cardName, cardSub }).select('rater score -_id');
+    res.json(ratings);
+  } catch (err) {
+    console.error("Greška pri dohvatanju ocenjivača:", err);
+    res.status(500).json({ msg: "Greška na serveru." });
+  }
+});
