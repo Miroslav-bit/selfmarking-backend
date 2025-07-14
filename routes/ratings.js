@@ -44,3 +44,5 @@ router.get('/raters', async (req, res) => {
     res.status(500).json({ msg: "Greška na serveru." });
   }
 });
+
+module.exports = router;
