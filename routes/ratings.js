@@ -1,28 +1,36 @@
 const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const dotenv = require('dotenv');
-const authRoutes = require('./routes/auth');
-const postRoutes = require('./routes/posts');
-const userRoutes = require('./routes/userRoutes');
+const router = express.Router();
+const Rating = require('../models/Rating');
 
-const app = express();
-dotenv.config();
+// POST /api/ratings/save
+router.post('/save', async (req, res) => {
+  const { cardName, cardSub, rater, score } = req.body;
 
-app.use(cors());
-app.use(express.json());
+  try {
+    let rating = await Rating.findOne({ cardName, cardSub, rater });
+    if (rating) {
+      rating.score = score;
+      await rating.save();
+    } else {
+      rating = new Rating({ cardName, cardSub, rater, score });
+      await rating.save();
+    }
+    res.json({ msg: 'Ocena sačuvana', rating });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: 'Greška pri upisu ocene u bazu' });
+  }
+});
 
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => console.log('✅ Povezan sa MongoDB'))
-  .catch(err => console.error('❌ Greška pri povezivanju sa bazom:', err));
+router.get('/list', async (req, res) => {
+  const { cardName, cardSub } = req.query;
 
-app.use('/api', authRoutes);
-app.use('/api/posts', postRoutes);
-app.use('/api/user', userRoutes);
+  try {
+    const ratings = await Rating.find({ cardName, cardSub });
+    res.json(ratings);
+  } catch (err) {
+    res.status(500).json({ msg: 'Greška pri čitanju iz baze' });
+  }
+});
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server aktivan na portu ${PORT}`));
-
-app.use('/api/ratings', require('./routes/ratings'));
+module.exports = router;
