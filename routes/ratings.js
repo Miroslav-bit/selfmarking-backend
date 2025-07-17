@@ -45,13 +45,16 @@ router.get('/raters', async (req, res) => {
   }
 });
 
-// Dohvati sve ocenjene članove za datog ocenjivača
 router.get('/evaluated', async (req, res) => {
-  const { rater } = req.query;
+  const { raterId } = req.query;
+
+  if (!raterId) {
+    return res.status(400).json({ msg: "Nedostaje raterId." });
+  }
 
   try {
-    const ocene = await Rating.find({ rater });
-    const jedinstveni = [...new Set(ocene.map(o => o.cardName))]; // Izvuci samo imena ocenjenih
+    const ocene = await Rating.find({ raterId });
+    const jedinstveni = [...new Set(ocene.map(o => o.cardName))];
     res.json(jedinstveni);
   } catch (err) {
     console.error("Greška u /evaluated:", err);
