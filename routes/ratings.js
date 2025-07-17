@@ -62,10 +62,15 @@ router.get('/evaluated', async (req, res) => {
 // Dohvati sve ocene koje je jedan korisnik dao drugom
 router.get('/dossier', async (req, res) => {
   const { raterName, ratedName } = req.query;
+
   try {
-    const ocene = await Rating.find({ raterName, ratedName });
+    const ocene = await Rating.find({
+      rater: raterName,        // Ispravno polje iz baze
+      cardName: ratedName      // Ispravno polje iz baze
+    });
     res.json(ocene);
   } catch (err) {
+    console.error("Greška u ruti /dossier:", err);
     res.status(500).json({ msg: 'Greška pri učitavanju ocena' });
   }
 });
