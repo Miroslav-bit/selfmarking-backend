@@ -25,4 +25,5 @@ app.use('/api/user', userRoutes);
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server aktivan na portu ${PORT}`));
 
-app.use('/api/ratings', require('./routes/ratings'));
+const ratingRoutes = require('./routes/ratings');
+app.use('/api/ratings', ratingRoutes);
