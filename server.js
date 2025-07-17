@@ -5,7 +5,7 @@ const dotenv = require('dotenv');
 const authRoutes = require('./routes/auth');
 const postRoutes = require('./routes/posts');
 const userRoutes = require('./routes/userRoutes');
-const ratingsRoutes = require('./routes/ratings'); // OVDE uključujemo sve ocenjivačke i dnevničke rute
+const ratingsRoutes = require('./routes/ratings'); // ✅ Ovde uključujemo i ocenjivanje i dnevnik
 
 const app = express();
 dotenv.config();
@@ -19,10 +19,11 @@ mongoose.connect(process.env.MONGO_URI, {
 }).then(() => console.log('✅ Povezan sa MongoDB'))
   .catch(err => console.error('❌ Greška pri povezivanju sa bazom:', err));
 
+// Rute
 app.use('/api', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/user', userRoutes);
-app.use('/api', ratingsRoutes); // ✅ OVO JE JEDINO POTREBNO za /ratings/* i /log/*
-  
+app.use('/api/ratings', ratingsRoutes); // ✅ Sve što se tiče ocena i dnevnika ide kroz ovaj prefiks
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server aktivan na portu ${PORT}`));
