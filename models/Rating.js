@@ -13,11 +13,6 @@ const RatingSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  raterId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
   score: {
     type: Number,
     required: true
@@ -25,4 +20,3 @@ const RatingSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 module.exports = mongoose.model('Rating', RatingSchema);
-
