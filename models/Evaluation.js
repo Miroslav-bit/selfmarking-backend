@@ -1,8 +1,14 @@
 const mongoose = require('mongoose');
 
-const EvaluatorLogSchema = new mongoose.Schema({
-  rater: { type: String, required: true },
-  evaluated: { type: [String], default: [] }
+const EvaluationSchema = new mongoose.Schema({
+  cardName: String,       // Ime ocenjenog člana
+  cardSub: String,        // Potkategorija (npr. "Snaga")
+  rater: String,          // Ime ocenjivača
+  score: Number,          // Dodeljena ocena
+  date: {
+    type: Date,
+    default: Date.now
+  }
 });
 
-module.exports = mongoose.model('EvaluatorLog', EvaluatorLogSchema);
+module.exports = mongoose.model('Evaluation', EvaluationSchema);
