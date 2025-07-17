@@ -1,98 +1,72 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User');
-const Panel = require('../models/Panel'); // panel struktura i objave
+const Rating = require('../models/Rating');
 
-// Get self panel info for a user
-router.get('/:username/panel', async (req, res) => {
+// POST /api/ratings/save
+router.post('/save', async (req, res) => {
+  const { cardName, cardSub, rater, score } = req.body;
+
   try {
-    const user = await User.findOne({ username: req.params.username });
-    if (!user) return res.status(404).json({ msg: 'Korisnik nije pronađen' });
-
-    const panel = await Panel.findOne({ user: user._id });
-    res.json({
-      name: user.name,
-      age: user.age,
-      location: user.location,
-      avatar: user.avatar,
-      categories: panel.categories
-    });
-  } catch (err) {
-    res.status(500).json({ msg: 'Greška na serveru' });
-  }
-});
-
-// ruta za pretragu korisnika
-router.get('/search', async (req, res) => {
-  try {
-    const query = req.query.query;
-
-    if (!query) {
-      return res.status(400).json({ message: 'Nedostaje parametar pretrage.' });
+    let rating = await Rating.findOne({ cardName, cardSub, rater });
+    if (rating) {
+      rating.score = score;
+      await rating.save();
+    } else {
+      rating = new Rating({ cardName, cardSub, rater, score });
+      await rating.save();
     }
-
-    const regex = new RegExp(query, 'i'); // Case-insensitive
-
-    const users = await User.find({
-      $or: [
-        { name: regex },
-        { surname: regex },
-        { city: regex }
-      ]
-    }).select('name surname city avatarUrl _id');
-
-    res.json(users);
+    res.json({ msg: 'Ocena sačuvana', rating });
   } catch (err) {
-    res.status(500).json({ message: 'Greška na serveru.' });
+    console.error(err);
+    res.status(500).json({ msg: 'Greška pri upisu ocene u bazu' });
   }
 });
 
-const jwt = require('jsonwebtoken');
+router.get('/list', async (req, res) => {
+  const { cardName, cardSub } = req.query;
 
-// Middleware za autentifikaciju
-const auth = (req, res, next) => {
-  const bearer = req.header('Authorization');
-  if (!bearer || !bearer.startsWith("Bearer ")) {
-    return res.status(401).json({ msg: "Nevažeći token." });
-  }
-
-  const token = bearer.split(" ")[1];
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded.id;
-    next();
+    const ratings = await Rating.find({ cardName, cardSub });
+    res.json(ratings);
   } catch (err) {
-    res.status(401).json({ msg: "Nevažeći token." });
-  }
-};
-
-// Ruta za prikaz svojih podataka
-router.get('/me', auth, async (req, res) => {
-  try {
-    const user = await User.findById(req.user).select('name surname city email avatarUrl');
-    if (!user) return res.status(404).json({ msg: 'Korisnik nije pronađen' });
-    res.json(user);
-  } catch (err) {
-    res.status(500).json({ msg: 'Greška na serveru.' });
+    res.status(500).json({ msg: 'Greška pri čitanju iz baze' });
   }
 });
 
-// Ruta za ažuriranje korisničkih podataka
-router.put('/update', auth, async (req, res) => {
+// GET ocenjivači za konkretnu temu
+router.get('/raters', async (req, res) => {
   try {
-    const user = await User.findById(req.user);
-    if (!user) return res.status(404).json({ msg: 'Korisnik nije pronađen' });
-
-    user.name = req.body.name || user.name;
-    user.surname = req.body.surname || user.surname;
-    user.city = req.body.city || user.city;
-    user.email = req.body.email || user.email;
-    user.avatarUrl = req.body.avatarUrl || user.avatarUrl;
-
-    await user.save();
-    res.json({ msg: 'Podaci su uspešno ažurirani.' });
+    const { cardName, cardSub } = req.query;
+    const ratings = await Rating.find({ cardName, cardSub }).select('rater score -_id');
+    res.json(ratings);
   } catch (err) {
-    res.status(500).json({ msg: 'Greška pri ažuriranju.' });
+    console.error("Greška pri dohvatanju ocenjivača:", err);
+    res.status(500).json({ msg: "Greška na serveru." });
+  }
+});
+
+// Dohvati sve ocenjene članove za datog ocenjivača
+router.get('/evaluated', async (req, res) => {
+  const { rater } = req.query;
+
+  try {
+    const ocene = await Rating.find({ rater });
+    const jedinstveni = [...new Set(ocene.map(o => o.cardName))]; // Izvuci samo imena ocenjenih
+    res.json(jedinstveni);
+  } catch (err) {
+    console.error("Greška u /evaluated:", err);
+    res.status(500).json({ msg: "Greška na serveru." });
+  }
+});
+
+// Dohvati sve ocene koje je jedan korisnik dao drugom
+router.get('/dossier', async (req, res) => {
+  const { raterName, ratedName } = req.query;
+  try {
+    const ocene = await Rating.find({ raterName, ratedName });
+    res.json(ocene);
+  } catch (err) {
+    res.status(500).json({ msg: 'Greška pri učitavanju ocena' });
   }
 });
 
