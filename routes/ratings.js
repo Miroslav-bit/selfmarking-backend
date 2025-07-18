@@ -85,25 +85,23 @@ router.get('/z-score', async (req, res) => {
 
   try {
     const allRatings = await Rating.find({
-      raterName,
-      ratedName
+      rater: raterName,
+      cardName: ratedName
     });
 
-    // Mapiranje potkategorija na glavne kategorije
     const subToMainCategory = {
       "Lice": "Izgled",
       "Stas": "Izgled",
-      "OpšTe stanje": "Zdravlje",
+      "Opšte stanje": "Zdravlje",
       "Kondicija": "Zdravlje",
-      "Snaga": "FizičKa snaga",
-      "IzdržLjivost": "FizičKa snaga"
+      "Snaga": "Fizička snaga",
+      "Izdržljivost": "Fizička snaga"
     };
 
     const relevantSubs = Object.entries(subToMainCategory)
       .filter(([_, cat]) => cat === mainCategory)
-      .map(([sub, _]) => sub);
+      .map(([sub]) => sub);
 
-    // Filtriraj samo ocene za potkategorije te glavne kategorije
     const potkategorije = allRatings.filter(entry =>
       relevantSubs.includes(entry.cardSub)
     );
