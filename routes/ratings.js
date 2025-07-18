@@ -75,4 +75,53 @@ router.get('/dossier', async (req, res) => {
   }
 });
 
+// Nova ruta za računanje indirektne ocene (z)
+router.get('/z-score', async (req, res) => {
+  const { raterName, ratedName, mainCategory } = req.query;
+
+  if (!raterName || !ratedName || !mainCategory) {
+    return res.status(400).json({ msg: 'Nedostaju parametri.' });
+  }
+
+  try {
+    const allRatings = await Rating.find({
+      raterName,
+      ratedName
+    });
+
+    // Mapiranje potkategorija na glavne kategorije
+    const subToMainCategory = {
+      "Lice": "Izgled",
+      "Stas": "Izgled",
+      "OpšTe stanje": "Zdravlje",
+      "Kondicija": "Zdravlje",
+      "Snaga": "FizičKa snaga",
+      "IzdržLjivost": "FizičKa snaga"
+    };
+
+    const relevantSubs = Object.entries(subToMainCategory)
+      .filter(([_, cat]) => cat === mainCategory)
+      .map(([sub, _]) => sub);
+
+    // Filtriraj samo ocene za potkategorije te glavne kategorije
+    const potkategorije = allRatings.filter(entry =>
+      relevantSubs.includes(entry.cardSub)
+    );
+
+    const y = relevantSubs.length;
+    const v = potkategorije.filter(p => typeof p.score === 'number').length;
+    const w = y - v;
+    const a = potkategorije.reduce((acc, p) => acc + (typeof p.score === 'number' ? p.score : 0), 0);
+    const b = w * 5;
+    const x = a + b;
+    const z = y > 0 ? x / y : 0;
+
+    res.json({ z, x, y, a, b, v, w });
+
+  } catch (err) {
+    console.error("Greška pri računanju z:", err);
+    res.status(500).json({ msg: 'Greška na serveru.' });
+  }
+});
+
 module.exports = router;
