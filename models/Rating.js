@@ -19,4 +19,9 @@ const RatingSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+isIndirect: {
+  type: Boolean,
+  default: false
+}
+
 module.exports = mongoose.model('Rating', RatingSchema);
