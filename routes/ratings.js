@@ -75,4 +75,43 @@ router.get('/dossier', async (req, res) => {
   }
 });
 
+// Snimi indirektnu ocenu
+router.post('/indirect', async (req, res) => {
+  try {
+    const { rater, rated, cardSub, score } = req.body;
+
+    // Provera da li već postoji ta indirektna ocena (izbegavamo duplikate)
+    const existing = await Rating.findOne({ rater, rated, cardSub, isIndirect: true });
+    if (existing) {
+      existing.score = score;
+      await existing.save();
+      return res.json({ message: "Ažurirana postojeća indirektna ocena." });
+    }
+
+    const newRating = new Rating({ rater, rated, cardSub, score, isIndirect: true });
+    await newRating.save();
+    res.status(201).json({ message: "Indirektna ocena sačuvana." });
+  } catch (err) {
+    res.status(500).json({ error: "Greška pri čuvanju indirektne ocene." });
+  }
+});
+
+// Vrati sve ocenjivače za datu osobu i potkategoriju (direktne i indirektne)
+router.get('/raters-full', async (req, res) => {
+  try {
+    const { cardName, cardSub } = req.query;
+    const ratings = await Rating.find({ rated: cardName, cardSub });
+
+    const result = ratings.map(r => ({
+      rater: r.rater,
+      score: r.score,
+      isIndirect: r.isIndirect || false
+    }));
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: "Greška pri učitavanju ocenjivača." });
+  }
+});
+
 module.exports = router;
