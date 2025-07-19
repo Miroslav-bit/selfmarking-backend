@@ -16,12 +16,11 @@ const RatingSchema = new mongoose.Schema({
   score: {
     type: Number,
     required: true
+  },
+  isIndirect: {
+    type: Boolean,
+    default: false
   }
 }, { timestamps: true });
-
-isIndirect: {
-  type: Boolean,
-  default: false
-}
 
 module.exports = mongoose.model('Rating', RatingSchema);
