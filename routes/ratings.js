@@ -125,4 +125,30 @@ router.get('/indirect-raters', async (req, res) => {
   }
 });
 
+// /api/ratings/indirect-raters?cardName=Milica%20Vujković&cardSub=Fizička%20Snaga
+router.get('/indirect-raters', async (req, res) => {
+  try {
+    const { cardName, cardSub } = req.query;
+
+    // Pronađi sve ocenjivače koji su već ocenili ovu glavnu kategoriju
+    const directRaters = await Rating.find({ cardName, cardSub }).distinct('rater');
+
+    // Pronađi sve potkategorije iste osobe koje nisu glavna kategorija
+    const allSubs = await Rating.find({ cardName }).distinct('cardSub');
+    const subcategories = allSubs.filter(sub => sub !== cardSub);
+
+    // Pronađi ocene po tim potkategorijama
+    const indirectRatings = await Rating.find({
+      cardName,
+      cardSub: { $in: subcategories },
+      rater: { $nin: directRaters } // isključi već poznate direktne ocenjivače
+    });
+
+    res.json(indirectRatings);
+  } catch (err) {
+    console.error('Greška pri dohvaćanju indirektnih ocenjivača:', err);
+    res.status(500).json({ msg: 'Greška na serveru' });
+  }
+});
+
 module.exports = router;
