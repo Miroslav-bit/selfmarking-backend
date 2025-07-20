@@ -3,7 +3,7 @@ const router = express.Router();
 const Rating = require('../models/Rating');
 const Panel = require('../models/Panel');
 
-// ✅ RUTA: Snimi ocenu sa validacijom cardSub prema panelu
+// ✅ Ruta 1: Snimi ocenu
 router.post('/save', async (req, res) => {
   const { cardName, cardSub, rater, score } = req.body;
 
@@ -11,33 +11,7 @@ router.post('/save', async (req, res) => {
     return res.status(400).json({ msg: 'Nedostaju podaci za ocenu.' });
   }
 
-  // Izdvoji ime i prezime iz cardName
-  const [ime, ...ostatak] = cardName.trim().split(" ");
-  const prezime = ostatak.join(" ").trim();
-
   try {
-    // 🔍 Pronađi panel ocenjenog korisnika u bazi
-    const panel = await Panel.findOne({ name: ime, surname: prezime });
-
-    if (!panel) {
-      return res.status(404).json({ msg: `Panel za korisnika '${cardName}' nije pronađen.` });
-    }
-
-    const kategorije = panel.categories || [];
-
-    // ✅ Da li je cardSub validna glavna kategorija?
-    const postojiKaoGlavna = kategorije.some(k => k.name === cardSub);
-
-    // ✅ Ili možda validna potkategorija?
-    const postojiKaoPotkategorija = kategorije.some(k =>
-      k.subcategories && k.subcategories.some(sub => sub.name === cardSub)
-    );
-
-    if (!postojiKaoGlavna && !postojiKaoPotkategorija) {
-      return res.status(400).json({ msg: `Kategorija '${cardSub}' nije pronađena u panelu korisnika.` });
-    }
-
-    // ✔ Snimi ili ažuriraj ocenu
     let existing = await Rating.findOne({ cardName, cardSub, rater });
     if (existing) {
       existing.score = score;
@@ -48,9 +22,8 @@ router.post('/save', async (req, res) => {
     const nova = new Rating({ cardName, cardSub, rater, score });
     await nova.save();
     res.json({ msg: 'Ocena sačuvana.' });
-
   } catch (err) {
-    console.error("Greška u POST /save:", err);
+    console.error(err);
     res.status(500).json({ msg: 'Greška na serveru.' });
   }
 });
