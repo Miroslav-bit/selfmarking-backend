@@ -96,14 +96,6 @@ router.put('/update', auth, async (req, res) => {
   }
 });
 
-const express = require('express');
-const router = express.Router();
-const User = require('../models/User');
-const Panel = require('../models/Panel');
-const Post = require('../models/Post');
-const Rating = require('../models/Rating');
-const jwt = require('jsonwebtoken');
-
 // DELETE korisnika i svih povezanih podataka
 router.delete('/:id/delete', async (req, res) => {
   try {
