@@ -96,5 +96,34 @@ router.put('/update', auth, async (req, res) => {
   }
 });
 
-module.exports = router;
+const express = require('express');
+const router = express.Router();
+const User = require('../models/User');
+const Panel = require('../models/Panel');
+const Post = require('../models/Post');
+const Rating = require('../models/Rating');
+const jwt = require('jsonwebtoken');
 
+// DELETE korisnika i svih povezanih podataka
+router.delete('/:id/delete', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (decoded.id !== req.params.id) {
+      return res.status(403).json({ msg: 'Niste ovlašćeni za brisanje ovog naloga.' });
+    }
+
+    await Rating.deleteMany({ rater: decoded.name }); // ili decoded.username ako postoji
+    await Post.deleteMany({ user: decoded.id });
+    await Panel.deleteMany({ user: decoded.id });
+    await User.findByIdAndDelete(decoded.id);
+
+    res.status(200).json({ msg: 'Nalog i svi podaci uspešno obrisani.' });
+  } catch (err) {
+    console.error('Greška pri brisanju naloga:', err);
+    res.status(500).json({ msg: 'Greška na serveru.' });
+  }
+});
+
+module.exports = router;
