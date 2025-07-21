@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const PostSchema = new mongoose.Schema({
   text: { type: String, required: true },
+  imageUrl: { type: String }, // NOVO POLJE
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   panelOwnerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   mainCategory: { type: String, required: true },
