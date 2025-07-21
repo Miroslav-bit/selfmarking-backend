@@ -22,18 +22,24 @@ const token = bearer.split(" ")[1];
 };
 
 router.post('/', auth, async (req, res) => {
-  const { text, panelOwnerId, mainCategory, subCategory } = req.body;
+  const { text, imageUrl, panelOwnerId, mainCategory, subCategory } = req.body;
 
   const newPost = new Post({
     text,
+    imageUrl: imageUrl || null,
     user: req.user,
     panelOwnerId,
     mainCategory,
     subCategory
   });
 
-  await newPost.save();
-  res.json(newPost);
+  try {
+    await newPost.save();
+    res.status(201).json(newPost);
+  } catch (err) {
+    console.error("Greška pri snimanju objave:", err);
+    res.status(500).json({ msg: "Greška pri čuvanju objave." });
+  }
 });
 
 router.get('/', async (req, res) => {
