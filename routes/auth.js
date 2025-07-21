@@ -36,9 +36,9 @@ router.post('/register', async (req, res) => {
     const selfPanel = new Panel({
       userId: savedUser._id,
       categories: [
-        { name: "Izgled", subcategories: [{ name: "Lice" }, { name: "Stas" }] },
-        { name: "Zdravlje", subcategories: [{ name: "Opšte stanje" }, { name: "Kondicija" }] },
-        { name: "Fizička snaga", subcategories: [{ name: "Snaga" }, { name: "Izdržljivost" }] },
+        { name: "Obrazovanje", subcategories: [{ name: "Matematika" }, { name: "Fizika" }, { name: "Hemija" }, { name: "Astronomija" }, { name: "Geologija" }] },
+        { name: "Inteligencija", subcategories: [{ name: "Logika" }, { name: "Komunikativnost" }, { name: "Duhovitost" }] },
+        { name: "Karakterne osobine", subcategories: [{ name: "Hrabrost" }, { name: "Samouverenost" }, { name: "Smirenost" }, { name: "Empatija" }] },
       ],
     });
 
@@ -106,4 +106,3 @@ router.get('/user/:id/panel', async (req, res) => {
 });
 
 module.exports = router;
-
