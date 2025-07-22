@@ -67,4 +67,49 @@ router.get('/filter', async (req, res) => {
   }
 });
 
+// Dodavanje potvrde
+router.post('/confirm/:postId', auth, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.postId);
+    const user = await User.findById(req.user);
+    if (!post || !user) return res.status(404).json({ msg: "Post ili korisnik nije pronađen." });
+
+    if (!post.confirmators.includes(user.name + ' ' + user.surname)) {
+      post.confirmators.push(user.name + ' ' + user.surname);
+      await post.save();
+    }
+    res.json({ msg: "Potvrđeno." });
+  } catch (err) {
+    res.status(500).json({ msg: "Greška pri potvrđivanju." });
+  }
+});
+
+// Dodavanje demantija
+router.post('/deny/:postId', auth, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.postId);
+    const user = await User.findById(req.user);
+    if (!post || !user) return res.status(404).json({ msg: "Post ili korisnik nije pronađen." });
+
+    if (!post.deniers.includes(user.name + ' ' + user.surname)) {
+      post.deniers.push(user.name + ' ' + user.surname);
+      await post.save();
+    }
+    res.json({ msg: "Demantovano." });
+  } catch (err) {
+    res.status(500).json({ msg: "Greška pri demantovanju." });
+  }
+});
+
+// Dohvatanje validacija po tipu
+router.get('/validators/:postId', async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.postId);
+    if (!post) return res.status(404).json({ msg: "Post ne postoji." });
+    res.json({ confirmators: post.confirmators || [], deniers: post.deniers || [] });
+  } catch (err) {
+    res.status(500).json({ msg: "Greška pri učitavanju validacija." });
+  }
+});
+
 module.exports = router;
