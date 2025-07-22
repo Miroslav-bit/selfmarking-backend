@@ -27,3 +27,6 @@ app.listen(PORT, () => console.log(`🚀 Server aktivan na portu ${PORT}`));
 
 const ratingRoutes = require('./routes/ratings');
 app.use('/api/ratings', ratingRoutes);
+
+const replyRoutes = require('./routes/replies');
+app.use('/api/replies', replyRoutes);
