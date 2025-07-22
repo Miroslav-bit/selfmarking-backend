@@ -1,69 +1,46 @@
 const express = require('express');
-const Post = require('../models/Post');
-const User = require('../models/User');
-const jwt = require('jsonwebtoken');
 const router = express.Router();
+const Reply = require('../models/Reply');
+const jwt = require('jsonwebtoken');
 
 const auth = (req, res, next) => {
   const bearer = req.header('Authorization');
-  if (!bearer || !bearer.startsWith("Bearer ")) {
-    return res.status(401).json({ msg: "Nevažeći token." });
-  }
-const token = bearer.split(" ")[1];
-  if (!token) return res.status(401).json({ msg: 'Nema tokena.' });
-
+  if (!bearer || !bearer.startsWith("Bearer ")) return res.status(401).json({ msg: "Nema tokena." });
+  const token = bearer.split(" ")[1];
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded.id;
     next();
-  } catch (err) {
-    res.status(400).json({ msg: 'Nevažeći token.' });
+  } catch {
+    return res.status(400).json({ msg: "Nevažeći token." });
   }
 };
 
+// Kreiranje nove replike
 router.post('/', auth, async (req, res) => {
-  const { text, imageUrl, videoUrl, panelOwnerId, mainCategory, subCategory } = req.body;
+  const { postId, text } = req.body;
 
-  const newPost = new Post({
-    text,
-    imageUrl: imageUrl || null,
-    videoUrl: videoUrl || null,
+  const newReply = new Reply({
+    postId,
     user: req.user,
-    panelOwnerId,
-    mainCategory,
-    subCategory
+    text
   });
 
   try {
-    await newPost.save();
-    res.status(201).json(newPost);
+    await newReply.save();
+    res.status(201).json(newReply);
   } catch (err) {
-    console.error("Greška pri snimanju objave:", err);
-    res.status(500).json({ msg: "Greška pri čuvanju objave." });
+    res.status(500).json({ msg: 'Greška pri čuvanju replike.' });
   }
 });
 
-router.get('/', async (req, res) => {
-  const posts = await Post.find().populate('user', 'name surname avatarUrl').sort({ date: -1 });
-  res.json(posts);
-});
-
-router.get('/filter', async (req, res) => {
-  const { ownerId, mainCategory, subCategory } = req.query;
-
+// Dohvatanje replika za dati post
+router.get('/:postId', async (req, res) => {
   try {
-    const posts = await Post.find({
-      panelOwnerId: ownerId,
-      mainCategory,
-      subCategory
-    })
-    .populate('user', 'name surname avatarUrl')
-    .sort({ date: -1 });
-
-    res.json(posts);
+    const replies = await Reply.find({ postId: req.params.postId }).populate('user', 'name surname avatarUrl').sort({ date: 1 });
+    res.json(replies);
   } catch (err) {
-    console.error("Greška u /filter:", err);
-    res.status(500).json({ msg: "Greška na serveru." });
+    res.status(500).json({ msg: 'Greška pri dohvatanju replika.' });
   }
 });
 
