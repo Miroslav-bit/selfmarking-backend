@@ -8,7 +8,7 @@ const PostSchema = new mongoose.Schema({
   panelOwnerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   mainCategory: { type: String, required: true },
   subCategory: { type: String, required: true },
-  date: { type: Date, default: Date.now }
+  date: { type: Date, default: Date.now },
   confirmators: [{ type: String }],
   deniers: [{ type: String }]
 });
