@@ -22,11 +22,12 @@ const token = bearer.split(" ")[1];
 };
 
 router.post('/', auth, async (req, res) => {
-  const { text, imageUrl, panelOwnerId, mainCategory, subCategory } = req.body;
+  const { text, imageUrl, videoUrl, panelOwnerId, mainCategory, subCategory } = req.body;
 
   const newPost = new Post({
     text,
     imageUrl: imageUrl || null,
+    videoUrl: videoUrl || null,
     user: req.user,
     panelOwnerId,
     mainCategory,
