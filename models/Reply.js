@@ -1,14 +1,10 @@
 const mongoose = require('mongoose');
 
-const PostSchema = new mongoose.Schema({
+const ReplySchema = new mongoose.Schema({
+  postId: { type: mongoose.Schema.Types.ObjectId, ref: 'Post', required: true },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   text: { type: String, required: true },
-  imageUrl: { type: String },
-  videoUrl: { type: String }, // ← NOVO
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  panelOwnerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  mainCategory: { type: String, required: true },
-  subCategory: { type: String, required: true },
   date: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model('Post', PostSchema);
+module.exports = mongoose.model('Reply', ReplySchema);
