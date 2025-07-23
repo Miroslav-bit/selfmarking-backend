@@ -142,4 +142,22 @@ router.get('/validators/:postId', async (req, res) => {
   }
 });
 
+// Provera statusa validacije trenutnog korisnika
+router.get('/validation-status/:postId', auth, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.postId);
+    const user = await User.findById(req.user);
+    if (!post || !user) return res.status(404).json({ msg: "Post ili korisnik nije pronađen." });
+
+    const fullName = user.name + ' ' + user.surname;
+
+    const hasConfirmed = post.confirmators.includes(fullName);
+    const hasDenied = post.deniers.includes(fullName);
+
+    res.json({ confirmed: hasConfirmed, denied: hasDenied });
+  } catch (err) {
+    res.status(500).json({ msg: "Greška pri proveri validacije." });
+  }
+});
+
 module.exports = router;
