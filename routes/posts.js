@@ -67,7 +67,7 @@ router.get('/filter', async (req, res) => {
   }
 });
 
-// Dodavanje potvrde
+// Dodavanje potvrde (sa uklanjanjem iz demanti)
 router.post('/confirm/:postId', auth, async (req, res) => {
   try {
     const post = await Post.findById(req.params.postId);
@@ -75,26 +75,31 @@ router.post('/confirm/:postId', auth, async (req, res) => {
     if (!post || !user) return res.status(404).json({ msg: "Post ili korisnik nije pronađen." });
 
     const fullName = user.name + ' ' + user.surname;
-    const mode = req.query.mode;
 
-    if (mode === 'remove') {
-      post.confirmators = post.confirmators.filter(v => v !== fullName);
+    const wasConfirmed = post.confirmators.includes(fullName);
+    const wasDenied = post.deniers.includes(fullName);
+
+    if (wasConfirmed) {
+      // Ako je već potvrdio, ukloni ga
+      post.confirmators = post.confirmators.filter(name => name !== fullName);
     } else {
-      if (!post.confirmators.includes(fullName)) {
-        post.confirmators.push(fullName);
-        // Opcionalno: ako potvrđuje, ukloni ga iz deniers
-        post.deniers = post.deniers.filter(v => v !== fullName);
+      // Dodaj u confirmators
+      post.confirmators.push(fullName);
+      // Ukloni iz deniers ako postoji
+      if (wasDenied) {
+        post.deniers = post.deniers.filter(name => name !== fullName);
       }
     }
 
     await post.save();
-    res.json({ msg: "Status potvrde ažuriran." });
+    res.json({ msg: "Potvrda ažurirana." });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ msg: "Greška pri potvrđivanju." });
   }
 });
 
-// Dodavanje demantija
+// Dodavanje demantija (sa uklanjanjem iz potvrda)
 router.post('/deny/:postId', auth, async (req, res) => {
   try {
     const post = await Post.findById(req.params.postId);
@@ -102,21 +107,26 @@ router.post('/deny/:postId', auth, async (req, res) => {
     if (!post || !user) return res.status(404).json({ msg: "Post ili korisnik nije pronađen." });
 
     const fullName = user.name + ' ' + user.surname;
-    const mode = req.query.mode;
 
-    if (mode === 'remove') {
-      post.deniers = post.deniers.filter(v => v !== fullName);
+    const wasDenied = post.deniers.includes(fullName);
+    const wasConfirmed = post.confirmators.includes(fullName);
+
+    if (wasDenied) {
+      // Ako je već demantovao, ukloni ga
+      post.deniers = post.deniers.filter(name => name !== fullName);
     } else {
-      if (!post.deniers.includes(fullName)) {
-        post.deniers.push(fullName);
-        // Opcionalno: ako demantuje, ukloni ga iz confirmators
-        post.confirmators = post.confirmators.filter(v => v !== fullName);
+      // Dodaj u deniers
+      post.deniers.push(fullName);
+      // Ukloni iz confirmators ako postoji
+      if (wasConfirmed) {
+        post.confirmators = post.confirmators.filter(name => name !== fullName);
       }
     }
 
     await post.save();
-    res.json({ msg: "Status demantija ažuriran." });
+    res.json({ msg: "Demanti ažuriran." });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ msg: "Greška pri demantovanju." });
   }
 });
