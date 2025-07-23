@@ -74,11 +74,21 @@ router.post('/confirm/:postId', auth, async (req, res) => {
     const user = await User.findById(req.user);
     if (!post || !user) return res.status(404).json({ msg: "Post ili korisnik nije pronađen." });
 
-    if (!post.confirmators.includes(user.name + ' ' + user.surname)) {
-      post.confirmators.push(user.name + ' ' + user.surname);
-      await post.save();
+    const fullName = user.name + ' ' + user.surname;
+    const mode = req.query.mode;
+
+    if (mode === 'remove') {
+      post.confirmators = post.confirmators.filter(v => v !== fullName);
+    } else {
+      if (!post.confirmators.includes(fullName)) {
+        post.confirmators.push(fullName);
+        // Opcionalno: ako potvrđuje, ukloni ga iz deniers
+        post.deniers = post.deniers.filter(v => v !== fullName);
+      }
     }
-    res.json({ msg: "Potvrđeno." });
+
+    await post.save();
+    res.json({ msg: "Status potvrde ažuriran." });
   } catch (err) {
     res.status(500).json({ msg: "Greška pri potvrđivanju." });
   }
@@ -91,11 +101,21 @@ router.post('/deny/:postId', auth, async (req, res) => {
     const user = await User.findById(req.user);
     if (!post || !user) return res.status(404).json({ msg: "Post ili korisnik nije pronađen." });
 
-    if (!post.deniers.includes(user.name + ' ' + user.surname)) {
-      post.deniers.push(user.name + ' ' + user.surname);
-      await post.save();
+    const fullName = user.name + ' ' + user.surname;
+    const mode = req.query.mode;
+
+    if (mode === 'remove') {
+      post.deniers = post.deniers.filter(v => v !== fullName);
+    } else {
+      if (!post.deniers.includes(fullName)) {
+        post.deniers.push(fullName);
+        // Opcionalno: ako demantuje, ukloni ga iz confirmators
+        post.confirmators = post.confirmators.filter(v => v !== fullName);
+      }
     }
-    res.json({ msg: "Demantovano." });
+
+    await post.save();
+    res.json({ msg: "Status demantija ažuriran." });
   } catch (err) {
     res.status(500).json({ msg: "Greška pri demantovanju." });
   }
