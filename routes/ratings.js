@@ -81,47 +81,40 @@ router.get('/dossier', async (req, res) => {
   }
 });
 
-// ✅ Ruta 5: Indirektni ocenjivači (NOVO!)
-router.get('/indirect-raters', async (req, res) => {
-  const { cardName, cardSub } = req.query;
+// /api/ratings/indirect-raters?cardName=Ivan Nikolić&cardMain=Inteligencija
+router.get("/indirect-raters", async (req, res) => {
+  const { cardName, cardMain } = req.query;
 
-  if (!cardName || !cardSub) {
-    return res.status(400).json({ msg: 'Nedostaje cardName ili cardSub' });
+  if (!cardName || !cardMain) {
+    return res.status(400).json({ error: "Missing parameters" });
   }
 
   try {
-    const [ime, ...prezimeDelovi] = cardName.trim().split(" ");
-    const prezime = prezimeDelovi.join(" ").trim();
+    const directRaters = await Rating.find({ cardName, cardSub: cardMain }).distinct("rater");
 
-    const panel = await Panel.findOne({ name: ime, surname: prezime });
-    if (!panel) return res.status(404).json({ msg: 'Panel nije pronađen.' });
+    const subRatings = await Rating.find({ cardName });
 
-    const glavnaKategorija = panel.categories.find(cat => cat.name.toLowerCase() === cardSub.toLowerCase());
-    if (!glavnaKategorija) return res.status(404).json({ msg: 'Glavna kategorija nije pronađena.' });
+    const indirectMap = new Map();
 
-    const potkategorije = glavnaKategorija.subcategories.map(sub => sub.name);
-
-    const direktneOcene = await Rating.find({ cardName, cardSub });
-    const direktniOcenjivaci = new Set(direktneOcene.map(r => r.rater));
-
-    const indirektneOcene = await Rating.find({
-      cardName,
-      cardSub: { $in: potkategorije }
+    subRatings.forEach(rating => {
+      if (rating.cardSub !== cardMain && !directRaters.includes(rating.rater)) {
+        if (!indirectMap.has(rating.rater)) {
+          indirectMap.set(rating.rater, []);
+        }
+        indirectMap.get(rating.rater).push(rating.score);
+      }
     });
 
-    const rezultat = [];
+    const indirectList = [];
 
-    for (const ocena of indirektneOcene) {
-      if (!direktniOcenjivaci.has(ocena.rater)) {
-        rezultat.push({ rater: ocena.rater });
-        direktniOcenjivaci.add(ocena.rater);
-      }
+    for (const [rater, scores] of indirectMap.entries()) {
+      const average = scores.reduce((a, b) => a + b, 0) / scores.length;
+      indirectList.push({ rater, score: parseFloat(average.toFixed(2)) });
     }
 
-    res.json(rezultat);
+    res.json(indirectList);
   } catch (err) {
-    console.error("Greška:", err);
-    res.status(500).json({ msg: 'Greška na serveru' });
+    res.status(500).json({ error: "Server error" });
   }
 });
 
