@@ -90,30 +90,62 @@ router.get("/indirect-raters", async (req, res) => {
   }
 
   try {
+    // Dobavi direktne ocenjivače
     const directRaters = await Rating.find({ cardName, cardSub: cardMain }).distinct("rater");
 
-    const subRatings = await Rating.find({ cardName });
+    // Sve ocene koje je osoba dobila
+    const allRatings = await Rating.find({ cardName });
 
+    // Mapiraj potkategorije glavne kategorije
+    const subToMain = {
+      "matematika": "Obrazovanje",
+      "fizika": "Obrazovanje",
+      "hemija": "Obrazovanje",
+      "astronomija": "Obrazovanje",
+      "geologija": "Obrazovanje",
+      "logika": "Inteligencija",
+      "komunikativnost": "Inteligencija",
+      "duhovitost": "Inteligencija",
+      "hrabrost": "Karakterne osobine",
+      "samouverenost": "Karakterne osobine",
+      "smirenost": "Karakterne osobine",
+      "empatija": "Karakterne osobine"
+    };
+
+    const relevantSubs = Object.entries(subToMain)
+      .filter(([_, main]) => main.toLowerCase() === cardMain.toLowerCase())
+      .map(([sub]) => sub);
+
+    const y = relevantSubs.length;
     const indirectMap = new Map();
 
-    subRatings.forEach(rating => {
-      if (rating.cardSub !== cardMain && !directRaters.includes(rating.rater)) {
-        if (!indirectMap.has(rating.rater)) {
-          indirectMap.set(rating.rater, []);
+    allRatings.forEach(({ rater, cardSub, score }) => {
+      if (
+        relevantSubs.includes(cardSub?.toLowerCase()) &&
+        !directRaters.includes(rater)
+      ) {
+        if (!indirectMap.has(rater)) {
+          indirectMap.set(rater, []);
         }
-        indirectMap.get(rating.rater).push(rating.score);
+        indirectMap.get(rater).push(score);
       }
     });
 
-    const indirectList = [];
+    const result = [];
 
     for (const [rater, scores] of indirectMap.entries()) {
-      const average = scores.reduce((a, b) => a + b, 0) / scores.length;
-      indirectList.push({ rater, score: parseFloat(average.toFixed(2)) });
+      const v = scores.length;
+      const w = y - v;
+      const a = scores.reduce((acc, val) => acc + val, 0);
+      const b = w * 5;
+      const x = a + b;
+      const z = y > 0 ? +(x / y).toFixed(2) : null;
+      result.push({ rater, score: z });
     }
 
-    res.json(indirectList);
+    res.json(result);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
