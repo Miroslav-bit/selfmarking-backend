@@ -37,7 +37,10 @@ router.get('/raters', async (req, res) => {
   }
 
   try {
-    const ocene = await Rating.find({ cardName, cardSub });
+    const ocene = await Rating.find({
+      cardName,
+      cardSub: new RegExp(`^${cardSub}$`, 'i')  // ignorise velika/mala slova
+    });
     const rezultat = ocene.map(r => ({
       rater: r.rater,
       score: r.score
