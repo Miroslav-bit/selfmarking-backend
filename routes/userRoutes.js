@@ -17,7 +17,9 @@ router.get('/:username/panel', async (req, res) => {
       age: user.age,
       location: user.location,
       avatar: user.avatar,
-      categories: panel.categories
+      categories: panel.categories,
+      privacy: user.privacy,      
+      ownerId: String(user._id)
     });
   } catch (err) {
     res.status(500).json({ msg: 'Greška na serveru' });
