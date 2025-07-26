@@ -10,7 +10,9 @@ const PostSchema = new mongoose.Schema({
   subCategory: { type: String, required: true },
   date: { type: Date, default: Date.now },
   confirmators: [{ type: String }],
-  deniers: [{ type: String }]
+  deniers: [{ type: String }],
+  isHidden: { type: Boolean, default: false },
 });
 
 module.exports = mongoose.model('Post', PostSchema);
+
