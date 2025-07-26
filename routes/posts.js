@@ -70,8 +70,8 @@ router.get('/filter', async (req, res) => {
       subCategory
     };
 
-    if (!viewerId || viewerId !== ownerId) {
-      // Ako gledalac NIJE vlasnik panela — vidi samo ne-skrivene objave
+    const isOwner = viewerId && viewerId.toString() === ownerId?.toString();
+    if (!isOwner) {
       filter.isHidden = false;
     }
 
@@ -203,3 +203,4 @@ router.put('/hide/:id', auth, async (req, res) => {
 });
 
 module.exports = router;
+
