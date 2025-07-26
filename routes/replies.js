@@ -6,6 +6,14 @@ const jwt = require('jsonwebtoken');
 const auth = (req, res, next) => {
   const bearer = req.header('Authorization');
   if (!bearer || !bearer.startsWith("Bearer ")) return res.status(401).json({ msg: "Nema tokena." });
+  const token = bearer.split(" ")[1];const express = require('express');
+const router = express.Router();
+const Reply = require('../models/Reply');
+const jwt = require('jsonwebtoken');
+
+const auth = (req, res, next) => {
+  const bearer = req.header('Authorization');
+  if (!bearer || !bearer.startsWith("Bearer ")) return res.status(401).json({ msg: "Nema tokena." });
   const token = bearer.split(" ")[1];
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -45,10 +53,10 @@ router.get('/:postId', async (req, res) => {
 });
 
 // PUT /api/replies/hide/:id
-router.put('/hide/:id', authMiddleware, async (req, res) => {
+router.put('/hide/:id', auth, async (req, res) => {
   const { id } = req.params;
   const { hide } = req.body;
-  const userId = req.user.userId;
+  const userId = req.user;
 
   try {
     const reply = await Reply.findById(id).populate("post");
