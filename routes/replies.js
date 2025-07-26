@@ -44,4 +44,28 @@ router.get('/:postId', async (req, res) => {
   }
 });
 
+// PUT /api/replies/hide/:id
+router.put('/hide/:id', authMiddleware, async (req, res) => {
+  const { id } = req.params;
+  const { hide } = req.body;
+  const userId = req.user.userId;
+
+  try {
+    const reply = await Reply.findById(id).populate("post");
+    if (!reply) return res.status(404).json({ msg: "Replika nije pronađena" });
+
+    // Provera da li je user vlasnik panela
+    if (reply.post.panelOwnerId.toString() !== userId) {
+      return res.status(403).json({ msg: "Nemate pravo da prikrivate ovu repliku" });
+    }
+
+    reply.isHidden = hide;
+    await reply.save();
+    res.json({ success: true, hidden: hide });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Greška na serveru" });
+  }
+});
+
 module.exports = router;
