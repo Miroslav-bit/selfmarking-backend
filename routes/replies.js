@@ -51,11 +51,13 @@ router.put('/hide/:id', auth, async (req, res) => {
   const userId = req.user;
 
   try {
-    const reply = await Reply.findById(id).populate("post");
+    const reply = await Reply.findById(id).populate({
+      path: 'postId',
+      select: 'panelOwnerId'
+    });
     if (!reply) return res.status(404).json({ msg: "Replika nije pronađena" });
 
-    // Provera da li je user vlasnik panela
-    if (reply.post.panelOwnerId.toString() !== userId) {
+    if (!reply.postId || reply.postId.panelOwnerId.toString() !== userId) {
       return res.status(403).json({ msg: "Nemate pravo da prikrivate ovu repliku" });
     }
 
