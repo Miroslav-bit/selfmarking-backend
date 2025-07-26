@@ -51,6 +51,41 @@ router.get('/', async (req, res) => {
 router.get('/filter', async (req, res) => {
   const { ownerId, mainCategory, subCategory } = req.query;
 
+  const token = req.header("Authorization")?.replace("Bearer ", "");
+  let viewerId = null;
+
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      viewerId = decoded.id;
+    } catch (err) {
+      console.warn("Nevažeći token u /filter ruti.");
+    }
+  }
+
+  try {
+    const filter = {
+      panelOwnerId: ownerId,
+      mainCategory,
+      subCategory
+    };
+
+    if (!viewerId || viewerId !== ownerId) {
+      // Ako gledalac NIJE vlasnik panela — vidi samo ne-skrivene objave
+      filter.isHidden = false;
+    }
+
+    const posts = await Post.find(filter)
+      .populate('user', 'name surname avatarUrl')
+      .sort({ date: -1 });
+
+    res.json(posts);
+  } catch (err) {
+    console.error("Greška u /filter:", err);
+    res.status(500).json({ msg: "Greška na serveru." });
+  }
+});
+
   try {
     const posts = await Post.find({
       panelOwnerId: ownerId,
