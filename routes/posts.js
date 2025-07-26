@@ -86,22 +86,6 @@ router.get('/filter', async (req, res) => {
   }
 });
 
-  try {
-    const posts = await Post.find({
-      panelOwnerId: ownerId,
-      mainCategory,
-      subCategory
-    })
-    .populate('user', 'name surname avatarUrl')
-    .sort({ date: -1 });
-
-    res.json(posts);
-  } catch (err) {
-    console.error("Greška u /filter:", err);
-    res.status(500).json({ msg: "Greška na serveru." });
-  }
-});
-
 // Dodavanje potvrde (sa uklanjanjem iz demanti)
 router.post('/confirm/:postId', auth, async (req, res) => {
   try {
