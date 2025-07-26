@@ -74,7 +74,7 @@ const auth = (req, res, next) => {
 // Ruta za prikaz svojih podataka
 router.get('/me', auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user).select('name surname city email avatarUrl');
+    const user = await User.findById(req.user).select('name surname city email avatarUrl privacy');
     if (!user) return res.status(404).json({ msg: 'Korisnik nije pronađen' });
     res.json(user);
   } catch (err) {
