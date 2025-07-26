@@ -36,6 +36,7 @@ router.get('/search', async (req, res) => {
     const regex = new RegExp(query, 'i'); // Case-insensitive
 
     const users = await User.find({
+      privacy: "public", // samo javni profili
       $or: [
         { name: regex },
         { surname: regex },
