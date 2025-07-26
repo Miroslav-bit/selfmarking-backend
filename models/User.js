@@ -9,4 +9,10 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true }
 });
 
+privacy: {
+  type: String,
+  enum: ["public", "private"],
+  default: "public"
+}
+
 module.exports = mongoose.model('User', userSchema);
