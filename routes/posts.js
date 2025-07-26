@@ -160,4 +160,27 @@ router.get('/validation-status/:postId', auth, async (req, res) => {
   }
 });
 
+// PUT /api/posts/hide/:id
+router.put('/hide/:id', auth, async (req, res) => {
+  const { id } = req.params;
+  const { hide } = req.body;
+  const userId = req.user;
+
+  try {
+    const post = await Post.findById(id);
+    if (!post) return res.status(404).json({ msg: "Objava nije pronađena." });
+
+    if (post.panelOwnerId.toString() !== userId) {
+      return res.status(403).json({ msg: "Nemate pravo da prikrivate ovu objavu." });
+    }
+
+    post.isHidden = hide;
+    await post.save();
+    res.json({ success: true, hidden: hide });
+  } catch (err) {
+    console.error("Greška pri prikrivanju objave:", err);
+    res.status(500).json({ msg: "Greška na serveru." });
+  }
+});
+
 module.exports = router;
