@@ -91,6 +91,8 @@ router.put('/update', auth, async (req, res) => {
     user.email = req.body.email || user.email;
     user.avatarUrl = req.body.avatarUrl || user.avatarUrl;
 
+    if (req.body.privacy) user.privacy = req.body.privacy;
+
     await user.save();
     res.json({ msg: 'Podaci su uspešno ažurirani.' });
   } catch (err) {
