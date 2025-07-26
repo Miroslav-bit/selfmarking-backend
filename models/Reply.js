@@ -7,4 +7,9 @@ const ReplySchema = new mongoose.Schema({
   date: { type: Date, default: Date.now }
 });
 
+isHidden: {
+  type: Boolean,
+  default: false
+}
+
 module.exports = mongoose.model('Reply', ReplySchema);
