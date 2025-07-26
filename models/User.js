@@ -6,13 +6,13 @@ const userSchema = new mongoose.Schema({
   city: String,
   avatarUrl: String,
   email: { type: String, required: true, unique: true },
-  password: { type: String, required: true }
-});
+  password: { type: String, required: true },
 
-privacy: {
-  type: String,
-  enum: ["public", "private"],
-  default: "public"
-}
+  privacy: {
+    type: String,
+    enum: ["public", "private"],
+    default: "public"
+  }
+});
 
 module.exports = mongoose.model('User', userSchema);
