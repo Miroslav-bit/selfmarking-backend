@@ -51,33 +51,14 @@ router.get('/', async (req, res) => {
 router.get('/filter', async (req, res) => {
   const { ownerId, mainCategory, subCategory } = req.query;
 
-  const token = req.header("Authorization")?.replace("Bearer ", "");
-  let viewerId = null;
-
-  if (token) {
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      viewerId = decoded.id;
-    } catch (err) {
-      console.warn("Nevažeći token u /filter ruti.");
-    }
-  }
-
   try {
-    const filter = {
+    const posts = await Post.find({
       panelOwnerId: ownerId,
       mainCategory,
       subCategory
-    };
-
-    const isOwner = viewerId && viewerId.toString() === ownerId?.toString();
-    if (!isOwner) {
-      filter.isHidden = false;
-    }
-
-    const posts = await Post.find(filter)
-      .populate('user', 'name surname avatarUrl')
-      .sort({ date: -1 });
+    })
+    .populate('user', 'name surname avatarUrl')
+    .sort({ date: -1 });
 
     res.json(posts);
   } catch (err) {
@@ -203,4 +184,3 @@ router.put('/hide/:id', auth, async (req, res) => {
 });
 
 module.exports = router;
-
