@@ -213,10 +213,11 @@ router.get("/total-raters", async (req, res) => {
       }
 
       // "r" je broj glavnih kategorija koje je ocenio rater (direktno)
-      const ocenjivaneGlavne = ocene.filter(o =>
-        glavneKategorije.includes(o.cardSub)
-      );
-      const r = ocenjivaneGlavne.length;
+        const r = new Set(
+          ocene
+            .filter(o => glavneKategorije.includes(o.cardSub))
+            .map(o => o.cardSub.toLowerCase())
+        ).size;
 
       const s = (10 - r) * 5;
       const u = ((p + s) / 10).toFixed(2).replace(/\.?0+$/, '');
