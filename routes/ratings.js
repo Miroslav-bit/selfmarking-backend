@@ -159,7 +159,7 @@ router.get("/total-raters", async (req, res) => {
   if (!cardName) return res.status(400).json({ error: "Nedostaje parametar cardName" });
 
   try {
-    // Mapa glavnih kategorija
+    // Mapiranje potkategorija na glavne
     const subToMain = {
       matematika: "Obrazovanje",
       fizika: "Obrazovanje",
@@ -169,49 +169,55 @@ router.get("/total-raters", async (req, res) => {
       logika: "Inteligencija",
       komunikativnost: "Inteligencija",
       duhovitost: "Inteligencija",
-      emotivnost: "Karakterne osobine",
+      hrabrost: "Karakterne osobine",
+      samouverenost: "Karakterne osobine",
       smirenost: "Karakterne osobine",
-      samopouzdanje: "Karakterne osobine",
       empatija: "Karakterne osobine"
     };
-    const glavneKategorije = [...new Set(Object.values(subToMain))];
 
-    // Nađi sve ocenjivače koji su ocenili bar nešto o ovom korisniku
+    // Inverzno mapiranje: glavna kategorija => [potkategorije]
+    const mainToSubs = {};
+    for (const [sub, main] of Object.entries(subToMain)) {
+      if (!mainToSubs[main]) mainToSubs[main] = [];
+      mainToSubs[main].push(sub);
+    }
+
+    const glavneKategorije = Object.keys(mainToSubs);
     const sviRateri = await Rating.find({ cardName }).distinct("rater");
     const rezultat = [];
 
     for (const rater of sviRateri) {
       const ocene = await Rating.find({ cardName, rater });
-
       let ukupnoQ = 0;
       let brojQ = 0;
       const ocenjivaneKategorije = new Set();
 
       for (const main of glavneKategorije) {
+        const subovi = mainToSubs[main] || [];
+
+        // Pronađi glavno (direktna ocena glavne kategorije)
         const glavno = ocene.find(o =>
-          o.cardSub?.toLowerCase() === main.toLowerCase()
+          subovi.includes(o.cardSub?.toLowerCase())
         );
 
-        const pods = ocene.filter(o => {
-          const sub = o.cardSub?.toLowerCase();
-          return subToMain[sub] === main;
-        });
+        // Svi pods (potkategorije iz ove grupe)
+        const pods = ocene.filter(o =>
+          subovi.includes(o.cardSub?.toLowerCase())
+        );
 
-        const v = pods.filter(e => typeof e.score === "number").length;
-        const y = Object.entries(subToMain).filter(([_, cat]) => cat === main).length;
+        const v = pods.filter(e => typeof e.score === 'number').length;
+        const y = subovi.length;
         const w = y - v;
-        const a = pods.reduce((acc, e) => acc + (typeof e.score === "number" ? e.score : 0), 0);
+        const a = pods.reduce((acc, e) => acc + (typeof e.score === 'number' ? e.score : 0), 0);
         const b = w * 5;
         const x = a + b;
         const z = y > 0 ? x / y : 5;
 
         const q = glavno && typeof glavno.score === "number" ? glavno.score : z;
+
         if (typeof q === "number") {
           ukupnoQ += q;
-          brojQ++;
-        }
-
-        if (glavno || v > 0) {
+          brojQ += 1;
           ocenjivaneKategorije.add(main);
         }
       }
