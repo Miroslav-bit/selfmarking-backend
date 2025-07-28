@@ -153,84 +153,61 @@ router.get("/indirect-raters", async (req, res) => {
   }
 });
 
-// ✅ Ruta 5: Total raters - svi ocenjivači za sve glavne kategorije
+// ✅ Ispravka: Total raters - tačno prema vrednosti "u" iz dosijea
 router.get("/total-raters", async (req, res) => {
   const { cardName } = req.query;
-
   if (!cardName) {
     return res.status(400).json({ error: "Nedostaje parametar cardName" });
   }
 
   try {
-    // Učitaj sve ocene korisnika
+    // Sve ocene koje je ocenjeni član dobio
     const sveOcene = await Rating.find({ cardName });
 
-    // Grupisanje ocena po ocenjivaču
-    const zbirke = new Map();
+    // Formiraj mapu: rater -> [ocene koje je dao]
+    const mapa = new Map();
 
-    // Broj glavnih kategorija koje ćemo tretirati kao referencu
-    const glavneKategorije = [
-      "Obrazovanje", "Inteligencija", "Karakter"
-    ];
-
-    const subToMain = {
-      "matematika": "Obrazovanje",
-      "fizika": "Obrazovanje",
-      "hemija": "Obrazovanje",
-      "astronomija": "Obrazovanje",
-      "geologija": "Obrazovanje",
-      "logika": "Inteligencija",
-      "komunikativnost": "Inteligencija",
-      "duhovitost": "Inteligencija",
-      "emotivnost": "Karakter",
-      "smirenost": "Karakter",
-      "samopouzdanje": "Karakter",
-      "empatija": "Karakter"
-    };
-
-    const brojKategorija = glavneKategorije.length;
-
-    for (const ocena of sveOcene) {
-      const { rater, cardSub, score } = ocena;
-      if (!rater || score === undefined) continue;
-
-      if (!zbirke.has(rater)) zbirke.set(rater, []);
-
-      zbirke.get(rater).push({ cardSub, score });
+    for (const o of sveOcene) {
+      if (!mapa.has(o.rater)) {
+        mapa.set(o.rater, []);
+      }
+      mapa.get(o.rater).push(o);
     }
 
     const rezultat = [];
 
-    for (const [rater, ocene] of zbirke.entries()) {
-      // Pravimo zbir za sve ocene, računamo indirektno po glavnim kategorijama
-      let ukupanZbir = 0;
+    for (const [rater, ocene] of mapa.entries()) {
+      let zbirP = 0; // zbir ocena glavnih kategorija
+      let brojP = 0;
+      let zbirS = 0; // zbir ocena potkategorija
+      let brojS = 0;
 
-      for (const glavna of glavneKategorije) {
-        // Pronađi ocene koje pripadaju ovoj glavnoj kategoriji
-        const relevantne = ocene.filter(o => {
-          return (
-            o.cardSub.toLowerCase() === glavna.toLowerCase() ||
-            subToMain[o.cardSub?.toLowerCase()]?.toLowerCase() === glavna.toLowerCase()
-          );
-        });
-
-        const v = relevantne.length;
-        const w = 5 * (subToMain ? 5 - v : 0); // pretpostavljamo 5 potkategorija u proseku
-        const zbir = relevantne.reduce((sum, o) => sum + o.score, 0);
-        const z = v + (subToMain ? 5 - v : 0);
-        const prosek = z > 0 ? (zbir + w) / z : 5;
-
-        ukupanZbir += prosek;
+      for (const o of ocene) {
+        // Ako je ocena za glavnu kategoriju
+        if (
+          ["Obrazovanje", "Inteligencija", "Karakter"].includes(o.cardSub)
+        ) {
+          zbirP += o.score;
+          brojP++;
+        } else {
+          zbirS += o.score;
+          brojS++;
+        }
       }
 
-      const ukupnaOcena = +(ukupanZbir / brojKategorija).toFixed(2);
-      rezultat.push({ rater, score: ukupnaOcena });
+      if (brojP === 0) continue; // rater nije ocenjivao nijednu glavnu kategoriju
+
+      const p = zbirP / brojP;
+      const s = brojS > 0 ? zbirS / brojS * 10 : 50; // podrazumevana vrednost s = 50 ako nema ocena
+      const u = +((p + s) / 10).toFixed(2);
+
+      rezultat.push({ rater, score: u });
     }
 
     res.json(rezultat);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Greška na serveru" });
+    res.status(500).json({ error: "Greška na serveru." });
   }
 });
 
