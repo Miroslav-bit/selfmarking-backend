@@ -159,7 +159,6 @@ router.get("/total-raters", async (req, res) => {
   if (!cardName) return res.status(400).json({ error: "Nedostaje parametar cardName" });
 
   try {
-    // Mapiranje potkategorija na glavne
     const subToMain = {
       matematika: "Obrazovanje",
       fizika: "Obrazovanje",
@@ -175,7 +174,6 @@ router.get("/total-raters", async (req, res) => {
       empatija: "Karakterne osobine"
     };
 
-    // Inverzno mapiranje: glavna kategorija => [potkategorije]
     const mainToSubs = {};
     for (const [sub, main] of Object.entries(subToMain)) {
       if (!mainToSubs[main]) mainToSubs[main] = [];
@@ -195,12 +193,12 @@ router.get("/total-raters", async (req, res) => {
       for (const main of glavneKategorije) {
         const subovi = mainToSubs[main] || [];
 
-        // Pronađi glavno (direktna ocena glavne kategorije)
+        // ✅ Ispravka: direktna ocena glavne kategorije traži se po imenu
         const glavno = ocene.find(o =>
-          subovi.includes(o.cardSub?.toLowerCase())
+          o.cardSub?.toLowerCase() === main.toLowerCase()
         );
 
-        // Svi pods (potkategorije iz ove grupe)
+        // ✅ Potkategorije
         const pods = ocene.filter(o =>
           subovi.includes(o.cardSub?.toLowerCase())
         );
@@ -213,7 +211,7 @@ router.get("/total-raters", async (req, res) => {
         const x = a + b;
         const z = y > 0 ? x / y : 5;
 
-        const q = glavno && typeof glavno.score === "number" ? glavno.score : z;
+        const q = (glavno && typeof glavno.score === "number") ? glavno.score : z;
 
         if (typeof q === "number") {
           ukupnoQ += q;
