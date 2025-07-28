@@ -153,4 +153,85 @@ router.get("/indirect-raters", async (req, res) => {
   }
 });
 
+// ✅ Ruta 5: Total raters - svi ocenjivači za sve glavne kategorije
+router.get("/total-raters", async (req, res) => {
+  const { cardName } = req.query;
+
+  if (!cardName) {
+    return res.status(400).json({ error: "Nedostaje parametar cardName" });
+  }
+
+  try {
+    // Učitaj sve ocene korisnika
+    const sveOcene = await Rating.find({ cardName });
+
+    // Grupisanje ocena po ocenjivaču
+    const zbirke = new Map();
+
+    // Broj glavnih kategorija koje ćemo tretirati kao referencu
+    const glavneKategorije = [
+      "Obrazovanje", "Inteligencija", "Karakter"
+    ];
+
+    const subToMain = {
+      "matematika": "Obrazovanje",
+      "fizika": "Obrazovanje",
+      "hemija": "Obrazovanje",
+      "astronomija": "Obrazovanje",
+      "geologija": "Obrazovanje",
+      "logika": "Inteligencija",
+      "komunikativnost": "Inteligencija",
+      "duhovitost": "Inteligencija",
+      "emotivnost": "Karakter",
+      "smirenost": "Karakter",
+      "samopouzdanje": "Karakter",
+      "empatija": "Karakter"
+    };
+
+    const brojKategorija = glavneKategorije.length;
+
+    for (const ocena of sveOcene) {
+      const { rater, cardSub, score } = ocena;
+      if (!rater || score === undefined) continue;
+
+      if (!zbirke.has(rater)) zbirke.set(rater, []);
+
+      zbirke.get(rater).push({ cardSub, score });
+    }
+
+    const rezultat = [];
+
+    for (const [rater, ocene] of zbirke.entries()) {
+      // Pravimo zbir za sve ocene, računamo indirektno po glavnim kategorijama
+      let ukupanZbir = 0;
+
+      for (const glavna of glavneKategorije) {
+        // Pronađi ocene koje pripadaju ovoj glavnoj kategoriji
+        const relevantne = ocene.filter(o => {
+          return (
+            o.cardSub.toLowerCase() === glavna.toLowerCase() ||
+            subToMain[o.cardSub?.toLowerCase()]?.toLowerCase() === glavna.toLowerCase()
+          );
+        });
+
+        const v = relevantne.length;
+        const w = 5 * (subToMain ? 5 - v : 0); // pretpostavljamo 5 potkategorija u proseku
+        const zbir = relevantne.reduce((sum, o) => sum + o.score, 0);
+        const z = v + (subToMain ? 5 - v : 0);
+        const prosek = z > 0 ? (zbir + w) / z : 5;
+
+        ukupanZbir += prosek;
+      }
+
+      const ukupnaOcena = +(ukupanZbir / brojKategorija).toFixed(2);
+      rezultat.push({ rater, score: ukupnaOcena });
+    }
+
+    res.json(rezultat);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Greška na serveru" });
+  }
+});
+
 module.exports = router;
