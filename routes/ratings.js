@@ -170,15 +170,16 @@ router.get("/total-raters", async (req, res) => {
       logika: "Inteligencija",
       komunikativnost: "Inteligencija",
       duhovitost: "Inteligencija",
-      emotivnost: "Karakter",
-      smirenost: "Karakter",
-      samopouzdanje: "Karakter",
-      empatija: "Karakter"
+      emotivnost: "Karakterne osobine",
+      smirenost: "Karakterne osobine",
+      samopouzdanje: "Karakterne osobine",
+      empatija: "Karakterne osobine"
     };
 
-    const glavneKategorije = ["Obrazovanje", "Inteligencija", "Karakter"];
+    const glavneKategorije = [...new Set(Object.values(subToMain))];
     const rezultat = [];
 
+    // Grupisanje ocena po rateru
     const mapa = new Map();
     for (const o of sveOcene) {
       if (!o.rater) continue;
@@ -187,21 +188,21 @@ router.get("/total-raters", async (req, res) => {
     }
 
     for (const [rater, ocene] of mapa.entries()) {
-      let p = 0;
+      let ukupnoQ = 0;
+      let brojQ = 0;
 
       for (const main of glavneKategorije) {
-        // glavno: ocena direktno dodeljena glavnoj kategoriji
-        const glavno = ocene.find(o => o.cardSub?.toLowerCase() === main.toLowerCase());
+        const glavno = ocene.find(o =>
+          o.cardSub?.toLowerCase() === main.toLowerCase()
+        );
 
-        // pods: ocene koje pripadaju toj glavnoj kategoriji preko potkategorija
         const pods = ocene.filter(o => {
           const sub = o.cardSub?.toLowerCase();
-          return subToMain[sub] === main.toLowerCase();
+          return subToMain[sub] === main;
         });
 
-        // izračunaj "z" ako nema glavno.score
         const v = pods.filter(e => typeof e.score === 'number').length;
-        const y = Object.entries(subToMain).filter(([_, cat]) => cat.toLowerCase() === main.toLowerCase()).length;
+        const y = Object.entries(subToMain).filter(([_, cat]) => cat === main).length;
         const w = y - v;
         const a = pods.reduce((acc, e) => acc + (typeof e.score === 'number' ? e.score : 0), 0);
         const b = w * 5;
@@ -209,19 +210,27 @@ router.get("/total-raters", async (req, res) => {
         const z = y > 0 ? x / y : 5;
 
         const q = glavno && typeof glavno.score === 'number' ? glavno.score : z;
-        p += q;
+        if (typeof q === 'number') {
+          ukupnoQ += q;
+          brojQ++;
+        }
       }
 
-      // "r" je broj glavnih kategorija koje je ocenio rater (direktno)
-        const r = new Set(
-          ocene
-            .filter(o => glavneKategorije.includes(o.cardSub))
-            .map(o => o.cardSub.toLowerCase())
-        ).size;
+      if (brojQ === 0) continue;
 
+      const p = ukupnoQ; // zbir q vrednosti, NE prosek
+      const kategorijeKojeJeOcenio = new Set(
+        ocene
+          .filter(o => {
+            const cat = o.cardSub?.toLowerCase();
+            return glavneKategorije.includes(subToMain[cat] || o.cardSub);
+          })
+          .map(o => subToMain[o.cardSub?.toLowerCase()] || o.cardSub)
+      );
+      const r = kategorijeKojeJeOcenio.size;
       const s = (10 - r) * 5;
-      const u = ((p + s) / 10).toFixed(2).replace(/\.?0+$/, '');
 
+      const u = ((p + s) / 10).toFixed(2).replace(/\.?0+$/, '');
       rezultat.push({ rater, score: parseFloat(u) });
     }
 
