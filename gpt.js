@@ -32,8 +32,10 @@ Koristi sledeću skalu ocenjivanja:
 
 ${scalePrompt}
 
-Odgovor mora biti validan JSON u obliku:
-{ "comment": "tekst komentara", "score": broj bodova }
+Odgovori isključivo u JSON formatu.
+Nemoj dodavati dodatni tekst, pojašnjenja, uvode ni objašnjenja.
+Primer:
+{ "comment": "Bravo, to je prevazilaženje fobije!", "score": 200 }
           `.trim()
         },
         {
@@ -46,14 +48,19 @@ Odgovor mora biti validan JSON u obliku:
     });
 
     const result = response.choices[0].message.content.trim();
-    return JSON.parse(result);
-  } catch (error) {
-    console.error("GPT greška:", error.message);
-    return {
-      comment: "Nije moguće generisati ocenu.",
-      score: 0
-    };
-  }
+
+    let parsed;
+    try {
+      parsed = JSON.parse(result);
+    } catch (e) {
+      // Pokušaj da izvučeš broj iz teksta ako JSON parsiranje nije uspelo
+      const extractedScore = parseInt(result.match(/([+-]?\d{1,4})/)?.[1]) || 0;
+      return {
+        comment: result,
+        score: extractedScore
+      };
+    }
+    return parsed;
 }
 
 module.exports = generateReply;
