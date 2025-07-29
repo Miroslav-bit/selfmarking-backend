@@ -16,7 +16,7 @@ async function generateReply(text, subCategory, panelOwnerFullName) {
         score: 0
       };
     }
-  }
+
     let scalePrompt = require(scaleFilePath);
     scalePrompt = scalePrompt.replace('{{IME}}', panelOwnerFullName);
 
@@ -53,14 +53,22 @@ Primer:
     try {
       parsed = JSON.parse(result);
     } catch (e) {
-      // Pokušaj da izvučeš broj iz teksta ako JSON parsiranje nije uspelo
       const extractedScore = parseInt(result.match(/([+-]?\d{1,4})/)?.[1]) || 0;
       return {
         comment: result,
         score: extractedScore
       };
     }
+
     return parsed;
+
+  } catch (error) {
+    console.error("GPT greška:", error.message);
+    return {
+      comment: "Nije moguće generisati ocenu.",
+      score: 0
+    };
+  }
 }
 
 module.exports = generateReply;
