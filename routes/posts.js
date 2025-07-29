@@ -1,3 +1,6 @@
+const generateReply = require('../gpt');
+const Reply = require('../models/Reply');
+
 const express = require('express');
 const Post = require('../models/Post');
 const User = require('../models/User');
@@ -36,6 +39,24 @@ router.post('/', auth, async (req, res) => {
 
   try {
     await newPost.save();
+
+    // Pronađi AI korisnika (GPT)
+    const aiUser = await User.findOne({ email: "gpt@selfmarking.com" });
+
+    // Ako postoji GPT korisnik
+    if (aiUser) {
+      const aiText = await generateReply(text);
+
+      if (aiText) {
+        const aiReply = new Reply({
+          postId: newPost._id,
+          user: aiUser._id,
+          text: aiText
+        });
+        await aiReply.save();
+      }
+    }
+
     res.status(201).json(newPost);
   } catch (err) {
     console.error("Greška pri snimanju objave:", err);
