@@ -16,7 +16,7 @@ async function generateReply(text, subCategory, panelOwnerFullName) {
         score: 0
       };
     }
-
+  }
     let scalePrompt = require(scaleFilePath);
     scalePrompt = scalePrompt.replace('{{IME}}', panelOwnerFullName);
 
