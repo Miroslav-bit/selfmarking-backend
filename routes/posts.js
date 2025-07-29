@@ -43,15 +43,17 @@ router.post('/', auth, async (req, res) => {
     // Pronađi AI korisnika (GPT)
     const aiUser = await User.findOne({ email: "gpt@selfmarking.com" });
 
-    // Ako postoji GPT korisnik
     if (aiUser) {
-      const aiText = await generateReply(text);
+      const panelOwner = await User.findById(panelOwnerId);
+      const fullName = `${panelOwner.name} ${panelOwner.surname}`;
+      const gptResponse = await generateReply(text, subCategory, fullName);
 
-      if (aiText) {
+      if (gptResponse && gptResponse.comment) {
         const aiReply = new Reply({
           postId: newPost._id,
           user: aiUser._id,
-          text: aiText
+          text: gptResponse.comment,
+          gptScore: gptResponse.score
         });
         await aiReply.save();
       }
