@@ -37,7 +37,7 @@ router.post('/', auth, async (req, res) => {
 // Dohvatanje replika za dati post
 router.get('/:postId', async (req, res) => {
   try {
-    const replies = await Reply.find({ postId: req.params.postId }).populate('user', 'name surname avatarUrl').sort({ date: 1 });
+    const replies = await Reply.find({ postId: req.params.postId }).populate('user', 'name surname avatarUrl email').sort({ date: 1 });
     res.json(replies);
   } catch (err) {
     res.status(500).json({ msg: 'Greška pri dohvatanju replika.' });
