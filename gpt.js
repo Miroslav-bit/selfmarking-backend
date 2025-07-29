@@ -48,6 +48,7 @@ Primer:
     });
 
     const result = response.choices[0].message.content.trim();
+    console.log("GPT RAW:", result);
 
     let parsed;
     try {
