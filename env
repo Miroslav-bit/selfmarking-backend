@@ -1,2 +1,3 @@
 MONGO_URI=mongodb+srv://suinfotrg:ZLQmf3VWrBd16ye2@cluster0.tncgty5.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
 JWT_SECRET=ZLQmf3VWrBd16ye2
+OPENAI_API_KEY=ovde_unesi_svoj_pravi_API_ključ
