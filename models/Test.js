@@ -15,6 +15,3 @@ const TestSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('Test', TestSchema);
-
-
-module.exports = generateReply;
