@@ -46,7 +46,7 @@ app.use('/api/posts', postRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/ratings', ratingRoutes);
 app.use('/api/replies', replyRoutes);
+app.use('/api/tests', testRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server aktivan na portu ${PORT}`));
-app.use('/api/tests', testRoutes);
