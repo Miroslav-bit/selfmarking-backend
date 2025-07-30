@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Test = require('../models/Test');
 const User = require('../models/User');
-const generateQuestion = require('../gpt/gpt-test'); // (uskoro ćemo napraviti ovaj fajl)
+const { generateQuestion } = require('../gpt'); 
 const auth = require('../middleware/auth'); // koristi se ako želiš zaštitu tokenom
 
 // 🔹 Generiši novo pitanje
