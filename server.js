@@ -49,4 +49,4 @@ app.use('/api/replies', replyRoutes);
 app.use('/api/tests', testRoutes);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server aktivan na portu ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server aktivan na portu ${PORT}`))
