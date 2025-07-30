@@ -7,7 +7,8 @@ const postRoutes = require('./routes/posts');
 const userRoutes = require('./routes/userRoutes');
 const ratingRoutes = require('./routes/ratings');
 const replyRoutes = require('./routes/replies');
-const User = require('./models/User'); // <- premestiti ovde
+const User = require('./models/User');
+const testRoutes = require('./routes/tests');
 
 const app = express();
 dotenv.config();
@@ -48,3 +49,4 @@ app.use('/api/replies', replyRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server aktivan na portu ${PORT}`));
+app.use('/api/tests', testRoutes);
