@@ -9,6 +9,7 @@ const ratingRoutes = require('./routes/ratings');
 const replyRoutes = require('./routes/replies');
 const User = require('./models/User');
 const testRoutes = require('./routes/tests');
+const trainingRoutes = require('./routes/trainingRoutes');
 
 const app = express();
 dotenv.config();
@@ -47,6 +48,7 @@ app.use('/api/user', userRoutes);
 app.use('/api/ratings', ratingRoutes);
 app.use('/api/replies', replyRoutes);
 app.use('/api/tests', testRoutes);
+app.use('/api/training', trainingRoutes);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server aktivan na portu ${PORT}`))
+app.listen(PORT, () => console.log(`🚀 Server aktivan na portu ${PORT}`));
