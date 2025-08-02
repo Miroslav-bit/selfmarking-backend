@@ -48,34 +48,20 @@ Primer:
     });
 
     const result = response.choices[0].message.content.trim();
-    console.log("📤 GPT RAW:", result);
+    console.log("GPT RAW:", result);
 
-    // Prvo pokušaj čist JSON.parse
+    let parsed;
     try {
-      const parsed = JSON.parse(result);
-      console.log("✅ GPT PARSED JSON:", parsed);
-      return parsed;
-    } catch (e1) {
-      console.warn("⚠️ Nevalidan JSON. Pokušaćemo sanitizaciju...");
-      const match = result.match(/\{[^]*?\}/); // sve između prvog i poslednjeg {}
-      if (match) {
-        try {
-          const cleaned = match[0];
-          const parsed = JSON.parse(cleaned);
-          console.log("✅ Popravljeno parsiranje nakon sanitizacije:", parsed);
-          return parsed;
-        } catch (e2) {
-          console.error("❌ Neuspešna sanitizacija:", cleaned);
-        }
-      }
-
-      // Fallback: izdvoji broj i vrati sirov komentar
+      parsed = JSON.parse(result);
+    } catch (e) {
       const extractedScore = parseInt(result.match(/([+-]?\d{1,4})/)?.[1]) || 0;
       return {
         comment: result,
         score: extractedScore
       };
     }
+
+    return parsed;
 
   } catch (error) {
     console.error("GPT greška:", error.message);
@@ -135,7 +121,7 @@ Obavezno odgovori u ovom JSON formatu, bez ikakvog dodatnog teksta:
     });
 
     const result = response.choices[0].message.content.trim();
-    console.log("📤 GPT QUESTION RAW:", result);
+    console.log("GPT QUESTION RAW:", result);
 
     try {
       const parsed = JSON.parse(result);
