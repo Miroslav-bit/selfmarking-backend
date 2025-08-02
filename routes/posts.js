@@ -1,4 +1,4 @@
-const generateReply = require('../gpt');
+const { generateReply } = require('../gpt');
 const Reply = require('../models/Reply');
 
 const express = require('express');
