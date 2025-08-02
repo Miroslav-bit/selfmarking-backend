@@ -44,8 +44,12 @@ router.post('/', auth, async (req, res) => {
     const aiUser = await User.findOne({ email: "gpt@selfmarking.com" });
 
     if (aiUser) {
-      const panelOwner = await User.findById(panelOwnerId);
-      const fullName = `${panelOwner.name} ${panelOwner.surname}`;
+    const panelOwner = await User.findById(panelOwnerId);
+    if (!panelOwner) {
+      console.error("❌ panelOwner nije pronađen:", panelOwnerId);
+      return res.status(500).json({ msg: "Vlasnik panela nije pronađen." });
+    }
+    const fullName = `${panelOwner.name} ${panelOwner.surname}`;
       const gptResponse = await generateReply(text, subCategory, fullName);
 
       if (gptResponse && gptResponse.comment) {
