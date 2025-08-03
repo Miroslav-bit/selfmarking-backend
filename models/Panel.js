@@ -22,6 +22,12 @@ const panelSchema = new mongoose.Schema({
       ]
     }
   ]
+  selectedTrainings: [
+    {
+      subcategory: String,
+      etapa: Number
+    }
+  ]
 }, { timestamps: true });
 
 module.exports = mongoose.model('Panel', panelSchema);
