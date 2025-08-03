@@ -21,7 +21,7 @@ const panelSchema = new mongoose.Schema({
         }
       ]
     }
-  ]
+  ],
   selectedTrainings: [
     {
       subcategory: String,
