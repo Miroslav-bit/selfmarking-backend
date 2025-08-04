@@ -59,4 +59,44 @@ router.get('/selected/:userId/:sub', async (req, res) => {
   }
 });
 
+// POST /api/training/save-full
+router.post('/save-full', async (req, res) => {
+  const { userId, sub, etapa, html } = req.body;
+
+  try {
+    let panel = await Panel.findOne({ userId });
+    if (!panel) panel = new Panel({ userId, categories: [], selectedTrainings: [] });
+
+    const existing = panel.selectedTrainings.find(t => t.subcategory === sub);
+    if (existing) {
+      existing.etapa = etapa;
+      existing.html = html;
+    } else {
+      panel.selectedTrainings.push({ subcategory: sub, etapa, html });
+    }
+
+    await panel.save();
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Greška pri snimanju kompletnog treninga.' });
+  }
+});
+
+// GET /api/training/saved
+router.get('/saved', async (req, res) => {
+  const { user, sub } = req.query;
+
+  try {
+    const panel = await Panel.findOne({ userId: user });
+    const record = panel?.selectedTrainings?.find(t => t.subcategory === sub);
+    if (record?.html) {
+      return res.json({ html: record.html });
+    } else {
+      return res.json({});
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Greška pri učitavanju sačuvanog treninga.' });
+  }
+});
+
 module.exports = router;
