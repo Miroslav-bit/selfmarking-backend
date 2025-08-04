@@ -25,7 +25,8 @@ const panelSchema = new mongoose.Schema({
   selectedTrainings: [
     {
       subcategory: String,
-      etapa: Number
+      etapa: Number,
+      html: String // dodato
     }
   ]
 }, { timestamps: true });
