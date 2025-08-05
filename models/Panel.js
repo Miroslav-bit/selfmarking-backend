@@ -26,9 +26,11 @@ const panelSchema = new mongoose.Schema({
     {
       subcategory: String,
       etapa: Number,
-      html: String // dodato
+      html: String,
+      delay: Number
     }
   ]
 }, { timestamps: true });
 
+module.exports = mongoose.model('Panel', panelSchema);
 module.exports = mongoose.model('Panel', panelSchema);
