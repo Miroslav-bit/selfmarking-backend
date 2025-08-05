@@ -98,10 +98,13 @@ router.get('/saved', async (req, res) => {
     const panel = await Panel.findOne({ userId: user });
     const record = panel?.selectedTrainings?.find(t => t.subcategory === sub);
     if (record?.html) {
+      const legacyDelay = record.delay || 0;
+      const migratedDelayMap = record.delayMap || (legacyDelay > 0 ? { "1": legacyDelay } : {});
+
       return res.json({
         html: record.html,
-        delay: record.delay || 0,
-        delayMap: record.delayMap || {}
+        delay: legacyDelay,
+        delayMap: migratedDelayMap
       });
     } else {
       return res.json({});
