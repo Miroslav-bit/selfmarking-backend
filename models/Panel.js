@@ -27,11 +27,7 @@ const panelSchema = new mongoose.Schema({
       subcategory: String,
       etapa: Number,
       html: String,
-      delay: Number,
-      delayMap: {
-        type: Map,
-        of: Number
-      }
+      delay: Number
     }
   ]
 }, { timestamps: true });
