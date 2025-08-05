@@ -61,7 +61,7 @@ router.get('/selected/:userId/:sub', async (req, res) => {
 
 // POST /api/training/save-full
 router.post('/save-full', async (req, res) => {
-  const { userId, sub, etapa, html } = req.body;
+  const { userId, sub, etapa, html, delay } = req.body;
 
   try {
     let panel = await Panel.findOne({ userId });
@@ -71,8 +71,9 @@ router.post('/save-full', async (req, res) => {
     if (existing) {
       existing.etapa = etapa;
       existing.html = html;
+      existing.delay = delay ?? 0;
     } else {
-      panel.selectedTrainings.push({ subcategory: sub, etapa, html });
+      panel.selectedTrainings.push({ subcategory: sub, etapa, html, delay: delay ?? 0 });
     }
 
     await panel.save();
@@ -90,7 +91,7 @@ router.get('/saved', async (req, res) => {
     const panel = await Panel.findOne({ userId: user });
     const record = panel?.selectedTrainings?.find(t => t.subcategory === sub);
     if (record?.html) {
-      return res.json({ html: record.html });
+      return res.json({ html: record.html, delay: record.delay || 0 });
     } else {
       return res.json({});
     }
