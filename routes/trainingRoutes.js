@@ -61,7 +61,7 @@ router.get('/selected/:userId/:sub', async (req, res) => {
 
 // POST /api/training/save-full
 router.post('/save-full', async (req, res) => {
-  const { userId, sub, etapa, html, delay } = req.body;
+  const { userId, sub, etapa, html, delay, delayMap } = req.body;
 
   try {
     let panel = await Panel.findOne({ userId });
@@ -72,8 +72,15 @@ router.post('/save-full', async (req, res) => {
       existing.etapa = etapa;
       existing.html = html;
       existing.delay = delay ?? 0;
+      existing.delayMap = delayMap ?? {};
     } else {
-      panel.selectedTrainings.push({ subcategory: sub, etapa, html, delay: delay ?? 0 });
+      panel.selectedTrainings.push({
+        subcategory: sub,
+        etapa,
+        html,
+        delay: delay ?? 0,
+        delayMap: delayMap ?? {}
+      });
     }
 
     await panel.save();
@@ -91,7 +98,14 @@ router.get('/saved', async (req, res) => {
     const panel = await Panel.findOne({ userId: user });
     const record = panel?.selectedTrainings?.find(t => t.subcategory === sub);
     if (record?.html) {
-      return res.json({ html: record.html, delay: record.delay || 0 });
+      const legacyDelay = record.delay || 0;
+      const migratedDelayMap = record.delayMap || (legacyDelay > 0 ? { "1": legacyDelay } : {});
+
+      return res.json({
+        html: record.html,
+        delay: legacyDelay,
+        delayMap: migratedDelayMap
+      });
     } else {
       return res.json({});
     }
