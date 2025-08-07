@@ -61,7 +61,7 @@ router.get('/selected/:userId/:sub', async (req, res) => {
 
 // POST /api/training/save-full
 router.post('/save-full', async (req, res) => {
-  const { userId, sub, etapa, html, delay, delayMap } = req.body;
+  const { userId, sub, etapa, html, delay, delayMap, trainingGrade } = req.body;
 
   try {
     let panel = await Panel.findOne({ userId });
@@ -70,6 +70,7 @@ router.post('/save-full', async (req, res) => {
     const existing = panel.selectedTrainings.find(t => t.subcategory === sub);
     if (existing) {
       existing.etapa = etapa;
+      existing.trainingGrade = trainingGrade; // ✅ SAČUVAJ
       existing.html = html;
       existing.delay = delay ?? 0;
       existing.delayMap = delayMap ?? {};
@@ -77,6 +78,7 @@ router.post('/save-full', async (req, res) => {
       panel.selectedTrainings.push({
         subcategory: sub,
         etapa,
+        trainingGrade, // ✅ DODATO
         html,
         delay: delay ?? 0,
         delayMap: delayMap ?? {}
