@@ -129,4 +129,25 @@ router.delete('/me/delete', auth, async (req, res) => {
   }
 });
 
+// Dohvati userId na osnovu imena i prezimena
+router.get('/user-id', async (req, res) => {
+  const { name, surname } = req.query;
+
+  if (!name || !surname) {
+    return res.status(400).json({ msg: 'Nedostaju parametri.' });
+  }
+
+  try {
+    const user = await User.findOne({ name, surname });
+    if (user) {
+      res.json({ userId: user._id });
+    } else {
+      res.json({ userId: null });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: 'Greška pri dohvatanju userId.' });
+  }
+});
+
 module.exports = router;
