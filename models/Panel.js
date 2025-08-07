@@ -26,6 +26,7 @@ const panelSchema = new mongoose.Schema({
     {
       subcategory: String,
       etapa: Number,
+      trainingGrade: Number,
       html: String,
       delay: Number,
       delayMap: {
