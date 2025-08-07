@@ -62,6 +62,7 @@ router.get('/selected/:userId/:sub', async (req, res) => {
 // POST /api/training/save-full
 router.post('/save-full', async (req, res) => {
   const { userId, sub, etapa, html, delay, delayMap, trainingGrade } = req.body;
+  console.log("🚨 Sačuvani podaci:", userId, sub, etapa, trainingGrade);
 
   try {
     let panel = await Panel.findOne({ userId });
