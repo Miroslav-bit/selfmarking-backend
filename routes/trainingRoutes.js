@@ -116,4 +116,22 @@ router.get('/saved', async (req, res) => {
   }
 });
 
+// GET /api/training/grade?user=...&sub=...
+router.get('/grade', async (req, res) => {
+  const { user, sub } = req.query;
+
+  try {
+    const panel = await Panel.findOne({ userId: user });
+    const record = panel?.selectedTrainings?.find(t => t.subcategory === sub);
+
+    if (record?.trainingGrade) {
+      res.json({ trainingGrade: record.trainingGrade });
+    } else {
+      res.json({ trainingGrade: null });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Greška pri čitanju ocene treninga.' });
+  }
+});
+
 module.exports = router;
