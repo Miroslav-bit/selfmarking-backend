@@ -41,6 +41,12 @@ const panelSchema = new mongoose.Schema({
       totalPoints: Number
     }
   ]
+  postScores: [
+    {
+      subcategory: String,
+      totalPoints: Number
+    }
+  ],
 }, { timestamps: true });
 
 module.exports = mongoose.model('Panel', panelSchema);
