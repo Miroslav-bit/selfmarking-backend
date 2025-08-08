@@ -73,28 +73,43 @@ router.get('/user/:userId', async (req, res) => {
 router.put('/update-score', async (req, res) => {
   const { userId, subCategory, totalPoints } = req.body;
 
+  // 📌 LOGOVANJE – odmah na početku rute
+  console.log(">>> RUTA '/update-score' POZVANA");
+  console.log("📨 Primljeni podaci:");
+  console.log("userId:", userId);
+  console.log("subCategory:", subCategory);
+  console.log("totalPoints:", totalPoints);
+
   try {
     const panel = await Panel.findOne({ userId });
-    if (!panel) return res.status(404).json({ msg: "Panel nije pronađen" });
-
-    // Ako ne postoji testScores polje, napravi ga kao prazan niz
-    if (!panel.testScores) {
-      panel.testScores = [];
+    if (!panel) {
+      console.log("❌ Panel NIJE pronađen u bazi.");
+      return res.status(404).json({ msg: "Panel nije pronađen" });
     }
 
-    // Traži već postojeći unos za subkategoriju
+    console.log("✅ Panel PRONAĐEN:", panel._id);
+
+    if (!panel.testScores) {
+      panel.testScores = [];
+      console.log("ℹ️ Polje testScores nije postojalo – inicijalizovano kao prazan niz.");
+    }
+
     const existing = panel.testScores.find(s => s.subcategory === subCategory);
 
     if (existing) {
-      existing.totalPoints = totalPoints; // ažuriraj vrednost
+      console.log("🔄 Postojeći unos pronađen – ažuriranje vrednosti.");
+      existing.totalPoints = totalPoints;
     } else {
+      console.log("➕ Novi unos za testScores – dodavanje.");
       panel.testScores.push({ subcategory: subCategory, totalPoints });
     }
 
     await panel.save();
+    console.log("💾 panel.save() uspešan – bodovi su sačuvani.");
+
     res.json({ msg: "Bodovi uspešno ažurirani" });
   } catch (err) {
-    console.error(err);
+    console.error("❗ Greska u ruti /update-score:", err);
     res.status(500).json({ msg: "Greška pri ažuriranju bodova" });
   }
 });
