@@ -130,4 +130,19 @@ router.get('/panel/:userId', async (req, res) => {
   }
 });
 
+// 🔹 Dohvati userId prema imenu i prezimenu
+router.get('/user-id', async (req, res) => {
+  const { name, surname } = req.query;
+
+  try {
+    const user = await User.findOne({ name, surname });
+    if (!user) return res.status(404).json({ msg: 'Korisnik nije pronađen' });
+
+    res.json({ userId: user._id });
+  } catch (err) {
+    console.error("❗ Greška pri dohvatanju korisnika:", err);
+    res.status(500).json({ msg: 'Greška na serveru' });
+  }
+});
+
 module.exports = router;
