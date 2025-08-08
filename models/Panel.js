@@ -37,4 +37,11 @@ const panelSchema = new mongoose.Schema({
   ]
 }, { timestamps: true });
 
+testScores: [
+  {
+    subcategory: String,
+    totalPoints: Number
+  }
+],
+
 module.exports = mongoose.model('Panel', panelSchema);
