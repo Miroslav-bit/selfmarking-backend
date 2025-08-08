@@ -6,6 +6,7 @@ const Post = require('../models/Post');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
+const Panel = require('../models/Panel');
 
 const auth = (req, res, next) => {
   const bearer = req.header('Authorization');
@@ -207,6 +208,78 @@ router.put('/hide/:id', auth, async (req, res) => {
   } catch (err) {
     console.error("Greška pri prikrivanju objave:", err);
     res.status(500).json({ msg: "Greška na serveru." });
+  }
+});
+
+// 🔹 Ažuriraj zbir objavnih bodova u panelu
+router.put('/update-score', async (req, res) => {
+  const { userId, subCategory, totalPoints } = req.body;
+
+  console.log(">>> RUTA '/update-score' [POSTS] POZVANA");
+  console.log("📨 Primljeni podaci:", { userId, subCategory, totalPoints });
+
+  try {
+    const panel = await Panel.findOne({ userId });
+    if (!panel) {
+      console.log("❌ Panel NIJE pronađen u bazi.");
+      return res.status(404).json({ msg: "Panel nije pronađen" });
+    }
+
+    console.log("✅ Panel PRONAĐEN:", panel._id);
+
+    if (!panel.postScores) {
+      panel.postScores = [];
+      console.log("ℹ️ Polje postScores nije postojalo – inicijalizovano kao prazan niz.");
+    }
+
+    const existing = panel.postScores.find(s => s.subcategory === subCategory);
+
+    if (existing) {
+      console.log("🔄 Postojeći unos pronađen – ažuriranje vrednosti.");
+      existing.totalPoints = totalPoints;
+    } else {
+      console.log("➕ Novi unos za postScores – dodavanje.");
+      panel.postScores.push({ subcategory: subCategory, totalPoints });
+    }
+
+    await panel.save();
+    console.log("💾 panel.save() uspešan – bodovi su sačuvani.");
+
+    res.json({ msg: "Bodovi uspešno ažurirani" });
+  } catch (err) {
+    console.error("❗ Greška u ruti /update-score [POSTS]:", err);
+    res.status(500).json({ msg: "Greška pri ažuriranju bodova" });
+  }
+});
+
+// 🔹 Dohvati ceo panel korisnika da bi se iz njega izvukli post bodovi
+router.get('/panel/:userId', async (req, res) => {
+  try {
+    const panel = await Panel.findOne({ userId: req.params.userId });
+
+    if (!panel) {
+      return res.status(404).json({ msg: "Panel nije pronađen" });
+    }
+
+    res.json(panel); // Vrati ceo panel (uključuje i postScores)
+  } catch (err) {
+    console.error("❗ Greška pri dohvatanju panela:", err);
+    res.status(500).json({ msg: "Greška na serveru" });
+  }
+});
+
+// 🔹 Dohvati userId prema imenu i prezimenu
+router.get('/user-id', async (req, res) => {
+  const { name, surname } = req.query;
+
+  try {
+    const user = await User.findOne({ name, surname });
+    if (!user) return res.status(404).json({ msg: 'Korisnik nije pronađen' });
+
+    res.json({ userId: user._id });
+  } catch (err) {
+    console.error("❗ Greška pri dohvatanju korisnika:", err);
+    res.status(500).json({ msg: 'Greška na serveru' });
   }
 });
 
