@@ -3,6 +3,7 @@ const router = express.Router();
 const Test = require('../models/Test');
 const User = require('../models/User');
 const { generateQuestion } = require('../gpt'); 
+const Panel = require('../models/Panel');
 
 // 🔹 Generiši novo pitanje
 router.post('/generate', async (req, res) => {
@@ -65,6 +66,31 @@ router.get('/user/:userId', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: 'Greška prilikom dohvatanja testova' });
+  }
+});
+
+// 🔹 Ažuriraj zbir test bodova u panelu
+router.put('/update-score', async (req, res) => {
+  const { userId, subCategory, totalPoints } = req.body;
+
+  try {
+    const panel = await Panel.findOne({ userId });
+    if (!panel) return res.status(404).json({ msg: "Panel nije pronađen" });
+
+    // Traži već postojeći unos za subkategoriju
+    const existing = panel.testScores.find(s => s.subcategory === subCategory);
+
+    if (existing) {
+      existing.totalPoints = totalPoints; // ažuriraj vrednost
+    } else {
+      panel.testScores.push({ subcategory: subCategory, totalPoints });
+    }
+
+    await panel.save();
+    res.json({ msg: "Bodovi uspešno ažurirani" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Greška pri ažuriranju bodova" });
   }
 });
 
