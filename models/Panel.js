@@ -34,14 +34,13 @@ const panelSchema = new mongoose.Schema({
         of: Number
       }
     }
+  ],
+  testScores: [  // ✅ Sad je unutar šeme
+    {
+      subcategory: String,
+      totalPoints: Number
+    }
   ]
 }, { timestamps: true });
-
-testScores: [
-  {
-    subcategory: String,
-    totalPoints: Number
-  }
-],
 
 module.exports = mongoose.model('Panel', panelSchema);
