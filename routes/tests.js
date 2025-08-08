@@ -114,4 +114,20 @@ router.put('/update-score', async (req, res) => {
   }
 });
 
+// 🔹 Dohvati ceo panel korisnika da bi se iz njega izvukli test bodovi
+router.get('/panel/:userId', async (req, res) => {
+  try {
+    const panel = await Panel.findOne({ userId: req.params.userId });
+
+    if (!panel) {
+      return res.status(404).json({ msg: "Panel nije pronađen" });
+    }
+
+    res.json(panel); // Vrati ceo panel (uključuje i testScores)
+  } catch (err) {
+    console.error("❗ Greška pri dohvatanju panela:", err);
+    res.status(500).json({ msg: "Greška na serveru" });
+  }
+});
+
 module.exports = router;
