@@ -77,6 +77,11 @@ router.put('/update-score', async (req, res) => {
     const panel = await Panel.findOne({ userId });
     if (!panel) return res.status(404).json({ msg: "Panel nije pronađen" });
 
+    // Ako ne postoji testScores polje, napravi ga kao prazan niz
+    if (!panel.testScores) {
+      panel.testScores = [];
+    }
+
     // Traži već postojeći unos za subkategoriju
     const existing = panel.testScores.find(s => s.subcategory === subCategory);
 
