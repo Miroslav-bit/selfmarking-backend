@@ -40,7 +40,7 @@ const panelSchema = new mongoose.Schema({
       subcategory: String,
       totalPoints: Number
     }
-  ]
+  ],
   postScores: [
     {
       subcategory: String,
