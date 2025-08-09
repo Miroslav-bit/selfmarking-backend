@@ -238,5 +238,3 @@ router.get("/total-raters", async (req, res) => {
 });
 
 module.exports = router;
-
-
