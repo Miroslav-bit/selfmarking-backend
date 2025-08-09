@@ -1,27 +1,10 @@
 const mongoose = require('mongoose');
 
 const panelSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  categories: [
-    {
-      name: String,
-      subcategories: [
-        {
-          name: String,
-          posts: [
-            {
-              type: mongoose.Schema.Types.ObjectId,
-              ref: 'Post'
-            }
-          ]
-        }
-      ]
-    }
-  ],
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+
+  categories: [ /* ... kao kod tebe ... */ ],
+
   selectedTrainings: [
     {
       subcategory: String,
@@ -29,24 +12,18 @@ const panelSchema = new mongoose.Schema({
       trainingGrade: Number,
       html: String,
       delay: Number,
-      delayMap: {
-        type: Map,
-        of: Number
-      }
+      delayMap: { type: Map, of: Number }
     }
   ],
-  testScores: [  // ✅ Sad je unutar šeme
-    {
-      subcategory: String,
-      totalPoints: Number
-    }
-  ],
+
+  testScores: [
+    { subcategory: String, totalPoints: Number }
+  ], //  ⬅️ DODAJ OVAJ ZAREZ!
+
   postScores: [
-    {
-      subcategory: String,
-      totalPoints: Number
-    }
+    { subcategory: String, totalPoints: Number }
   ],
+
 }, { timestamps: true });
 
 module.exports = mongoose.model('Panel', panelSchema);
