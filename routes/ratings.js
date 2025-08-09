@@ -274,13 +274,17 @@ async function updateAiRating({ userId, cardName, cardSub }) {
   // 5) k = konačna ocena (tvoja formula)
   const k = +((5 + (trainingGrade - (5 * trainingGrade / trainingGrade)) * 200 + testPoints + postPoints) / 200).toFixed(2);
 
-  // 6) Upsert ocene (rater = "AI")
-  await Rating.findOneAndUpdate(
-    { cardName: cardName || panel.displayName, cardSub, rater: "AI" },
-    { $set: { score: k } },
-    { upsert: true }
-  );
-}
+// Normalizacija potkategorije
+const subNorm = cardSub
+  .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // ukloni dijakritike
+  .trim()
+  .toLowerCase();
+
+await Rating.findOneAndUpdate(
+  { cardName: panel.cardName, cardSub: subNorm, rater: "AI" },
+  { score: k },
+  { upsert: true, new: true }
+);
 
 // —————————————————————————————————————————————
 // Nova ruta: klijent (ili druga ruta backend-a) javlja identitet, backend sve računa i upisuje
