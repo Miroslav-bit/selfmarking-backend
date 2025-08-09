@@ -243,42 +243,40 @@ async function updateAiRating({ userId, cardName, cardSub }) {
   const norm = s => (s || "").trim().toLowerCase();
   if (!cardSub) return;
 
-  // 1) Nađi panel
-  const query = userId ? { userId } : { displayName: cardName };
-  const panel = await Panel.findOne(query);
-  if (!panel) return;
+// 1) Nađi panel
+const query = userId ? { userId } : { displayName: cardName };
+const panel = await Panel.findOne(query);
+if (!panel) return;
 
-  const subNorm = norm(cardSub);
-
-  // 2) a = trainingGrade (default 5 ako nema)
-  let trainingGrade = 5;
-  if (Array.isArray(panel.selectedTrainings)) {
-    const st = panel.selectedTrainings.find(t => norm(t.subcategory) === subNorm);
-    if (st && typeof st.trainingGrade === "number") trainingGrade = st.trainingGrade;
-  }
-
-  // 3) b = testPoints iz testScores
-  let testPoints = 0;
-  if (Array.isArray(panel.testScores)) {
-    const t = panel.testScores.find(x => norm(x.subcategory) === subNorm);
-    if (t && typeof t.totalPoints === "number") testPoints = t.totalPoints;
-  }
-
-  // 4) c = postPoints iz postScores
-  let postPoints = 0;
-  if (Array.isArray(panel.postScores)) {
-    const p = panel.postScores.find(x => norm(x.subcategory) === subNorm);
-    if (p && typeof p.totalPoints === "number") postPoints = p.totalPoints;
-  }
-
-  // 5) k = konačna ocena (tvoja formula)
-  const k = +((5 + (trainingGrade - (5 * trainingGrade / trainingGrade)) * 200 + testPoints + postPoints) / 200).toFixed(2);
-
-// Normalizacija potkategorije
-const subNorm = cardSub
-  .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // ukloni dijakritike
+// ✅ Normalizacija potkategorije (uključuje uklanjanje dijakritika)
+const subNorm = (cardSub || "")
+  .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
   .trim()
   .toLowerCase();
+
+// 2) a = trainingGrade (default 5 ako nema)
+let trainingGrade = 5;
+if (Array.isArray(panel.selectedTrainings)) {
+  const st = panel.selectedTrainings.find(t => norm(t.subcategory) === subNorm);
+  if (st && typeof st.trainingGrade === "number") trainingGrade = st.trainingGrade;
+}
+
+// 3) b = testPoints iz testScores
+let testPoints = 0;
+if (Array.isArray(panel.testScores)) {
+  const t = panel.testScores.find(x => norm(x.subcategory) === subNorm);
+  if (t && typeof t.totalPoints === "number") testPoints = t.totalPoints;
+}
+
+// 4) c = postPoints iz postScores
+let postPoints = 0;
+if (Array.isArray(panel.postScores)) {
+  const p = panel.postScores.find(x => norm(x.subcategory) === subNorm);
+  if (p && typeof p.totalPoints === "number") postPoints = p.totalPoints;
+}
+
+// 5) k = konačna ocena (tvoja formula)
+const k = +((5 + (trainingGrade - (5 * trainingGrade / trainingGrade)) * 200 + testPoints + postPoints) / 200).toFixed(2);
 
 await Rating.findOneAndUpdate(
   { cardName: panel.cardName, cardSub: subNorm, rater: "AI" },
