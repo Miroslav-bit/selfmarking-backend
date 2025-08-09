@@ -237,4 +237,66 @@ router.get("/total-raters", async (req, res) => {
   }
 });
 
+// —————————————————————————————————————————————
+// Helper: dovuci a/b/c i upiši AI, račun u backendu
+async function updateAiRating({ userId, cardName, cardSub }) {
+  const norm = s => (s || "").trim().toLowerCase();
+  if (!cardSub) return;
+
+  // 1) Nađi panel
+  const query = userId ? { userId } : { displayName: cardName };
+  const panel = await Panel.findOne(query);
+  if (!panel) return;
+
+  const subNorm = norm(cardSub);
+
+  // 2) a = trainingGrade (default 5 ako nema)
+  let trainingGrade = 5;
+  if (Array.isArray(panel.selectedTrainings)) {
+    const st = panel.selectedTrainings.find(t => norm(t.subcategory) === subNorm);
+    if (st && typeof st.trainingGrade === "number") trainingGrade = st.trainingGrade;
+  }
+
+  // 3) b = testPoints iz testScores
+  let testPoints = 0;
+  if (Array.isArray(panel.testScores)) {
+    const t = panel.testScores.find(x => norm(x.subcategory) === subNorm);
+    if (t && typeof t.totalPoints === "number") testPoints = t.totalPoints;
+  }
+
+  // 4) c = postPoints iz postScores
+  let postPoints = 0;
+  if (Array.isArray(panel.postScores)) {
+    const p = panel.postScores.find(x => norm(x.subcategory) === subNorm);
+    if (p && typeof p.totalPoints === "number") postPoints = p.totalPoints;
+  }
+
+  // 5) k = konačna ocena (tvoja formula)
+  const k = +((5 + (trainingGrade - (5 * trainingGrade / trainingGrade)) * 200 + testPoints + postPoints) / 200).toFixed(2);
+
+  // 6) Upsert ocene (rater = "AI")
+  await Rating.findOneAndUpdate(
+    { cardName: cardName || panel.displayName, cardSub, rater: "AI" },
+    { $set: { score: k } },
+    { upsert: true }
+  );
+}
+
+// —————————————————————————————————————————————
+// Nova ruta: klijent (ili druga ruta backend-a) javlja identitet, backend sve računa i upisuje
+router.post('/save-ai', async (req, res) => {
+  try {
+    const { userId, cardName, cardSub } = req.body;
+    if ((!userId && !cardName) || !cardSub) {
+      return res.status(400).json({ msg: 'Nedostaju userId/cardName ili cardSub.' });
+    }
+
+    await updateAiRating({ userId, cardName, cardSub });
+    return res.json({ msg: 'AI ocena izračunata i sačuvana.' });
+  } catch (err) {
+    console.error('Greška u /save-ai:', err);
+    return res.status(500).json({ msg: 'Greška na serveru.' });
+  }
+});
+
 module.exports = router;
