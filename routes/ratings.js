@@ -283,6 +283,7 @@ await Rating.findOneAndUpdate(
   { score: k },
   { upsert: true, new: true }
 );
+}
 
 // —————————————————————————————————————————————
 // Nova ruta: klijent (ili druga ruta backend-a) javlja identitet, backend sve računa i upisuje
