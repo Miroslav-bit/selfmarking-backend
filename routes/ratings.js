@@ -3,35 +3,25 @@ const router = express.Router();
 const Rating = require('../models/Rating');
 const Panel = require('../models/Panel');
 
-// ✅ Ruta 1: Snimi/azuriraj ocenu (case-insensitive upsert)
+// ✅ Ruta 1: Snimi ocenu
 router.post('/save', async (req, res) => {
-  let { cardName, cardSub, rater, score } = req.body;
+  const { cardName, cardSub, rater, score } = req.body;
 
-  if (!cardName || !cardSub || !rater || score === undefined || score === null) {
+  if (!cardName || !cardSub || !rater || score === undefined) {
     return res.status(400).json({ msg: 'Nedostaju podaci za ocenu.' });
   }
 
-  // obavezno broj
-  score = Number(score);
-  if (Number.isNaN(score)) {
-    return res.status(400).json({ msg: 'Score mora biti broj.' });
-  }
-
   try {
-    // upsert sa case-insensitive uslovom na cardSub
-    const result = await Rating.updateOne(
-      {
-        cardName,
-        rater,
-        cardSub: { $regex: `^${cardSub}$`, $options: 'i' } // <- ignoriše velika/mala slova
-      },
-      {
-        $set: { cardName, cardSub, rater, score }
-      },
-      { upsert: true }
-    );
+    let existing = await Rating.findOne({ cardName, cardSub, rater });
+    if (existing) {
+      existing.score = score;
+      await existing.save();
+      return res.json({ msg: 'Ocena ažurirana.' });
+    }
 
-    res.json({ msg: 'Ocena sačuvana (upsert).', result });
+    const nova = new Rating({ cardName, cardSub, rater, score });
+    await nova.save();
+    res.json({ msg: 'Ocena sačuvana.' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: 'Greška na serveru.' });
@@ -248,3 +238,5 @@ router.get("/total-raters", async (req, res) => {
 });
 
 module.exports = router;
+
+
